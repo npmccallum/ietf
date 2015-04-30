@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="US-ASCII"?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd" [
+<!ENTITY rfc2119 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2119.xml">
+<!ENTITY rfc2782 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2782.xml">
+<!ENTITY rfc3244 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.3244.xml">
+<!ENTITY rfc4120 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.4120.xml">
+<!ENTITY uri SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-faltstrom-uri-12.xml">
+]>
+<?xml-stylesheet type="text/xsl" href="rfc2629.xslt"?>
+
+<?rfc compact="yes"?>
+<?rfc subcompact="no"?>
+<?rfc toc="yes"?>
+<?rfc sortrefs="yes"?>
+<?rfc symrefs="yes"?>
+<?rfc rfcedstyle="yes"?>
+<?rfc autobreaks="yes"?>
+<?rfc docmapping="yes"?>
+
+<rfc category="std" docName="draft-mccallum-kitten-krb-service-discovery-00"
+     ipr="trust200902" updates="4120">
+  <front>
+    <title abbrev="Service Discovery">Kerberos Service Discovery using DNS</title>
+
+    <author fullname="Nathaniel McCallum" initials="N." surname="McCallum">
+      <organization>Red Hat, Inc.</organization>
+
+      <address>
+        <postal>
+          <street>100 East Davie Street</street>
+
+          <city>Raleigh</city>
+
+          <region>NC</region>
+
+          <code>27601</code>
+
+          <country>USA</country>
+        </postal>
+        
+        <email>npmccallum@redhat.com</email>
+      </address>
+    </author>
+    <date month="March" year="2015" />
+
+    <area>Security</area>
+    
+    <workgroup>Internet Engineering Task Force</workgroup>
+
+    <abstract>
+      <t>This document proposes defines a new mechanism for discovering Kerberos
+      services using DNS. This new mechanism extends the mechanism already
+      defined in <xref target="RFC4120">Kerberos V5</xref> and has four goals.
+      First, reduce the number of DNS queries required to discover a Kerberos
+      KDC. Second, provide DNS administrators more control over client behavior.
+      Third, provide support for discovery of the MS-KKDCP transport. Fourth,
+      define a discovery procedure for Kerberos password services.</t>
+    </abstract>
+  </front>
+
+
+  <middle>
+    <section title="Introduction">
+      <t>Section 7.2.3 of <xref target="RFC4120">Kerberos V5</xref> defines
+      a procedure for discovering a KDC based on DNS SRV records. This method
+      has three drawbacks. First, two DNS queries are required to locate a
+      single service (one for UDP and one for TCP). Second, specifying UDP and
+      TCP in separate records means that the DNS administrator has no control
+      over client preferences for TCP or UDP. Third, any new transports for
+      reaching the KDC (such as MS-KKDCP) will require new records and
+      additional DNS queries.</t>
+      
+      <t>The <xref target="RFC3244">Kerberos Password</xref> protocol has no
+      defined procedure for discovery similar to the KDC method described above.
+      Implementations have largely chosen a similar method to section 7.2.3 of
+      <xref target="RFC4120">Kerberos V5</xref>, inheriting the same drawbacks
+      outlined above.</t>
+      
+      <t>This RFC defines two new <xref target="I-D.faltstrom-uri">URI DNS
+      records</xref>; one each for KDC and Kerberos Password service discovery.
+      </t>
+    </section>
+
+    <section title="Document Conventions">
+      <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+      "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+      document are to be interpreted as described in <xref target="RFC2119">
+      RFC 2119</xref>.</t>
+    </section>
+
+    <section title="Realm to Domain Translation">
+      <t>This document does not define a new mechanism for translating
+      Kerberos realms to DNS domains. The existing mechanism as defined
+      in section 7.2.3.1 of <xref target="RFC4120">Kerberos V5</xref> MUST
+      be followed.</t>
+    </section>
+
+    <section title="Required URI Formats">
+      <t>The following URI formats MUST be supported by clients. These formats
+      indicate support for the standard UDP and TCP transports. The port
+      number is optional. If the port is not specified, the client MUST
+      default to the standard port of the service.</t>
+
+      <t>udp://host[:port]</t>
+      <t>tcp://host[:port]</t>
+    </section>
+
+    <section title="Optional URI Formats">
+      <t>The following URI formats MAY be supported by clients.</t>
+
+      <section title="MS-KKDCP">
+        <t>These URIs indicate support for the <xref target="MS-KKDCP">
+        MS-KKDCP</xref> protocol. The port number is optional. If the port is
+        not specified, the client MUST default to the standard port of the
+        service. The path is also optional. If the path is not specified, the
+        client MUST default to '/'. Please note that this differs from the
+        default path specified in section 2.1 of <xref target="MS-KKDCP">
+        MS-KKDCP</xref>.</t>
+        <t>http://host[:port][path]</t>
+        <t>https://host[:port][path]</t>
+      </section>
+    </section>
+
+    <section title="Kerberos V5 KDC Service Discovery">
+      <t>In order to discover a KDC service location, the client MUST query
+      the following <xref target="I-D.faltstrom-uri">URI DNS</xref> record
+      (REALM indicates the translation of the Kerberos realm to a DNS domain):
+      </t>
+      <t>_kerberos.REALM</t>
+      <t>TTL, Class, URI, Priority, Weight and Target have the standard
+      meanings as defined in <xref target="RFC2782">RFC 2782</xref> and the
+      <xref target="I-D.faltstrom-uri">URI DNS record type</xref>. Target
+      SHOULD contain one of the URI formats specified in this document.</t>
+    </section>
+
+    <section title="Kerberos Password Service Discovery">
+      <t>In order to discover a password service location, the client MUST
+      query the following <xref target="I-D.faltstrom-uri">URI DNS</xref>
+      record (REALM indicates the translation of the Kerberos realm to a DNS
+      domain):</t>
+      <t>_kpasswd.REALM</t>
+      <t>TTL, Class, URI, Priority, Weight and Target have the standard
+      meanings as defined in <xref target="RFC2782">RFC 2782</xref> and the
+      <xref target="I-D.faltstrom-uri">URI DNS record type</xref>. Target
+      SHOULD contain one of the URI formats specified in this document.</t>
+    </section>
+
+    <section title="Relationship to Existing Mechanism">
+      <t>If an existing discovery protocol is supported by a client, the client
+      SHOULD perform the URI lookup as defined in this document first. If no
+      URI record is found, the client MAY attempt discovery using another
+      protocol.</t>
+    </section>
+  </middle>
+
+  <back>
+<?rfc rfcedstyle="no"?>
+    <references title="Normative References">
+      &rfc2119;
+      &rfc2782;
+      &rfc3244;
+      &rfc4120;
+      &uri;
+
+      <reference anchor="MS-KKDCP" target="http://msdn.microsoft.com/en-us/library/hh553774.aspx">
+           <front>
+               <title>[MS-KKDCP]: Kerberos Key Distribution Center (KDC) Proxy Protocol</title>
+               <author>
+                    <organization>Microsoft</organization>
+               </author>
+               
+               <date month="May" year="2014" />
+           </front>
+       </reference>
+    </references>
+    
+<?rfc rfcedstyle="yes"?>
+
+    <section title="Acknowledgements">
+      <figure>
+        <artwork><![CDATA[
+Simo Sorce (Red Hat)
+Nico Williams (Oracle)
+         ]]></artwork>
+      </figure>
+    </section>
+  </back>
+</rfc>
