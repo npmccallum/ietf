@@ -73,16 +73,16 @@
       <section title="Properties of PAKE">
         <t>Diffie-Hellman key exchange (DHKE) is a mechanism by which two
         parties can derive a shared session key over an insecure network which
-	cannot be derived by a passive attacker. DHKE could replace the above
-	approaches without their drawback. Unfortunately, DHKE can be easily
-	compromised by an active attacker by using a man-in-the-middle
-	attack.</t>
+        cannot be derived by a passive attacker. DHKE could replace the above
+        approaches without their drawback. Unfortunately, DHKE can be easily
+        compromised by an active attacker by using a man-in-the-middle
+        attack.</t>
 
         <t>Password authenticated key exchange (PAKE) is a technique which
         extends DHKE by using a shared secret - in the case of Kerberos, the
-	client principal's long-term secret - in order to protect the
-	underlying DHKE from an active attacker. This property of PAKE makes it
-	ideal for use as a Kerberos pre-authentication mechanism.</t>
+        client principal's long-term secret - in order to protect the
+        underlying DHKE from an active attacker. This property of PAKE makes it
+        ideal for use as a Kerberos pre-authentication mechanism.</t>
       </section>
 
       <section title="PAKE and 2FA">
@@ -108,22 +108,22 @@
         <t>The most common technique in PAKE is to modify a DHKE by encrypting
         one or more of the public keys exchanged using the shared secret. This
         ensures that only the party which knows the shared secret can decrypt
-	the public key and complete the DHKE. The earliest widely deployed PAKE,
+        the public key and complete the DHKE. The earliest widely deployed PAKE,
         which also used this model, was the Diffie-Hellman Encrypted Key
-	Exchange (DH-EKE). Unfortunately, DH-EKE depends on the property that
-	the public key is indistinguishable from random. This unfortunately
-	means that DH-EKE cannot be used with elliptic curve Diffie-Hellman
-	(ECDH).</t>
+        Exchange (DH-EKE). Unfortunately, DH-EKE depends on the property that
+        the public key is indistinguishable from random. This unfortunately
+        means that DH-EKE cannot be used with elliptic curve Diffie-Hellman
+        (ECDH).</t>
 
         <t><xref target="I-D.irtf-cfrg-spake2">SPAKE</xref> is a variant of
         the technique used by DH-EKE which ensures that all public key
-	encryption and decryption operations result in a member of the
-	underlying group. This property allows SPAKE to be used with ECDH,
-	permitting the pre-authentication packets to use markedly smaller key
-	sizes with equivalent security. Additionally, unlike some other PAKE
-	methods, SPAKE can complete the key exchange in just a single
-	round-trip. These properties make SPAKE an ideal PAKE to use for
-	Kerberos pre-authentication.</t>
+        encryption and decryption operations result in a member of the
+        underlying group. This property allows SPAKE to be used with ECDH,
+        permitting the pre-authentication packets to use markedly smaller key
+        sizes with equivalent security. Additionally, unlike some other PAKE
+        methods, SPAKE can complete the key exchange in just a single
+        round-trip. These properties make SPAKE an ideal PAKE to use for
+        Kerberos pre-authentication.</t>
       </section>
     </section>
 
@@ -418,9 +418,9 @@ SPAKEResponse ::= SEQUENCE {
       a checksum based on one of the following algorithms MUST NOT be used:
       <list style="symbols">
         <t>CRC32</t>
-	<t>MD4</t>
-	<t>MD4</t>
-	<t>MAC</t>
+        <t>MD4</t>
+        <t>MD4</t>
+        <t>MAC</t>
       </list></t>
 
       <t>If more than one round-trip is required to authenticate a second
