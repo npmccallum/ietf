@@ -198,7 +198,7 @@
         <figure>
           <artwork><![CDATA[
 SPAKESupport ::= SEQUENCE {
-    groups   SEQUENCE (SIZE(1..MAX)) OF OBJECT IDENTIFIER,
+    groups      [0] SEQUENCE (SIZE(1..MAX)) OF OBJECT IDENTIFIER,
     ...
 }
 ]]></artwork>
@@ -218,9 +218,9 @@ SPAKESupport ::= SEQUENCE {
         <figure>
           <artwork><![CDATA[
 SPAKEChallenge ::= SEQUENCE {
-    group   OBJECT IDENTIFIER,
-    pubkey  OCTET STRING,
-    factors SEQUENCE (SIZE(1..MAX)) OF SPAKESecondFactor,
+    group       [0] OBJECT IDENTIFIER,
+    pubkey      [1] OCTET STRING,
+    factors     [2] SEQUENCE (SIZE(1..MAX)) OF SPAKESecondFactor,
     ...
 }
 ]]></artwork>
@@ -240,8 +240,8 @@ SPAKEChallenge ::= SEQUENCE {
         <figure>
           <artwork><![CDATA[
 SPAKESecondFactor ::= SEQUENCE {
-    type Int32,
-    data OCTET STRING OPTIONAL
+    type        [0] Int32,
+    data        [1] OCTET STRING OPTIONAL
 }
 ]]></artwork>
         </figure>
@@ -270,8 +270,8 @@ SPAKESecondFactor ::= SEQUENCE {
         <figure>
           <artwork><![CDATA[
 SPAKEResponse ::= SEQUENCE {
-    pubkey OCTET STRING,
-    factor EncryptedData, -- SPAKESecondFactor
+    pubkey      [0] OCTET STRING,
+    factor      [1] EncryptedData, -- SPAKESecondFactor
     ...
 }
 ]]></artwork>
@@ -482,6 +482,49 @@ SPAKEResponse ::= SEQUENCE {
       &rfc6560;
     </references>
 <?rfc rfcedstyle="yes"?>
+
+    <section title="ASN.1 Module">
+      <figure>
+        <artwork><![CDATA[
+KerberosV5SPAKE {
+        iso(1) identified-organization(3) dod(6) internet(1)
+        security(5) kerberosV5(2) modules(4) spake(8)
+} DEFINITIONS EXPLICIT TAGS ::= BEGIN
+
+IMPORTS
+    EncryptedData, Int32
+      FROM KerberosV5Spec2 { iso(1) identified-organization(3)
+        dod(6) internet(1) security(5) kerberosV5(2) modules(4)
+        krb5spec2(2) };
+        -- as defined in RFC 4120.
+
+SPAKESupport ::= SEQUENCE {
+    groups      [0] SEQUENCE (SIZE(1..MAX)) OF OBJECT IDENTIFIER,
+    ...
+}
+
+SPAKEChallenge ::= SEQUENCE {
+    group       [0] OBJECT IDENTIFIER,
+    pubkey      [1] OCTET STRING,
+    factors     [2] SEQUENCE (SIZE(1..MAX)) OF SPAKESecondFactor,
+    ...
+}
+
+SPAKESecondFactor ::= SEQUENCE {
+    type        [0] Int32,
+    data        [1] OCTET STRING OPTIONAL
+}
+
+SPAKEResponse ::= SEQUENCE {
+    pubkey      [0] OCTET STRING,
+    factor      [1] EncryptedData, -- SPAKESecondFactor
+    ...
+}
+
+END
+]]></artwork>
+      </figure>
+    </section>
 
     <section title="Acknowledgements">
       <figure>
