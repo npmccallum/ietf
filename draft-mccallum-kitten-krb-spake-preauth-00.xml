@@ -245,8 +245,8 @@ SPAKEChallenge ::= SEQUENCE {
         calculations.</t>
 
         <t>The pubkey field indicates the KDC's public key generated using the M
-        constant in the SPAKE algorithm. The format of this field's contents and
-        the value of the M constant will depend upon the group chosen.</t>
+        constant in the SPAKE algorithm, with inputs and conversions as
+        specified in <xref target="spakeparams"/>.</t>
 
         <t>The factors field contains an unordered list of second factors which
         can be used to complete the authentication. Each second factor is
@@ -292,10 +292,13 @@ SPAKEResponse ::= SEQUENCE {
 ]]></artwork>
         </figure>
 
+        <t>The pubkey field indicates the KDC's public key generated using the M
+        constant in the SPAKE algorithm, with inputs and conversions as
+        specified in <xref target="spakeparams"/>.</t>
+
         <t>The pubkey field indicates the client's public key generated using
-        the N constant in the SPAKE algorithm. The format of this field's
-        contents and the value of the N constant will depend upon the group
-        chosen by the KDC.</t>
+        the N constant in the SPAKE algorithm, with inputs and conversions as
+        specified in <xref target="spakeparams"/>.</t>
 
         <t>The factor field indicates the client's chosen second factor data.
         This data is encrypted using a derivation of the PAKE key. The plain
@@ -357,6 +360,36 @@ SPAKEResponse ::= SEQUENCE {
         PA-SPAKE PA-DATA element containing a SPAKESupport message. KDCs MUST
         support this optimization.</t>
       </section>
+    </section>
+
+    <section title="SPAKE Parameters and Conversions" anchor="spakeparams">
+      <t>The SPAKE algorithm requires a shared secret input w to be used as a
+      scalar multiplier (see <xref target="I-D.irtf-cfrg-spake2"/> section
+      2). This value MUST be produced from the client principal's long-term key
+      as follows:
+      <list style="numbers">
+        <t>Determine a scalar octet string input length for the chosen group.
+        For SEC 2 curves over a prime field F(p), this is ceil(log2(p)/8).  For
+        other groups, this length is specified by the group.</t>
+        <t>Produce an octet string of the above length with PRF+(K,
+        "SPAKEsecret"), where K is the long-term key and PRF+ is defined in
+        <xref target="RFC6113"/> section 5.1.</t>
+        <t>If the chosen group is secp521r1, set the high seven bits of the
+        first byte to 0 so that there are at most 521 significant bits in the
+        octet string.</t>
+        <t>For SEC 2 curves, decode the octet string as a big-endian integer as
+        specified in <xref target="SEC1"/> section 2.3.8.  For other groups,
+        decode the octet string as specified by the group.</t>
+      </list></t>
+      <t>The SPAKE algorithm requires constants M and N for each
+      group.  These constants MUST be taken from <xref
+      target="I-D.irtf-cfrg-spake2"/> section 3 or computed using the
+      method described therein.</t>
+      <t>Group elements are converted to octet strings for the SPAKEChallenge
+      and SPAKEResponse pubkey fields and for key derivation. For SEC 2 curves,
+      group elements are represented as specified in <xref target="SEC1"/>
+      section 2.3.3 with point compression on. For other groups, the
+      representation is specified by the group.</t>
     </section>
 
     <section title="Key Derivation">
@@ -492,6 +525,14 @@ SPAKEResponse ::= SEQUENCE {
       &rfc4120;
       &rfc6113;
       &spake;
+      <reference anchor='SEC1'>
+        <front>
+          <title>SEC 1: Elliptic Curve Cryptography</title>
+          <author><organization>Standards for Efficient Cryptography
+          Group</organization></author>
+          <date month="May" year="2009" />
+        </front>
+      </reference>
       <reference anchor='SEC2'>
         <front>
           <title>SEC 2: Recommended Elliptic Curve Domain Parameters</title>
