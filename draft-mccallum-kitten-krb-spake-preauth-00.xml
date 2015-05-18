@@ -162,6 +162,21 @@
         support the use of KDC_ERR_MORE_PREAUTH_DATA_REQUIRED as defined in
         <xref target="RFC6113"/> section 5.2.</t>
       </section>
+
+      <section title="Group Support">
+        <t>Both KDCs and clients MUST implement one or more groups for which the
+        discrete logarithm problem is hard, each with an corresponding object
+        identifer. Group object identifiers MUST refer to one of the following:
+        <list style="symbols">
+          <t>One of the eight elliptic curves specified in <xref target="SEC2"/>
+          section 2, using the corresponding object identifier from appendix
+          A.2.1.</t>
+          <t>A group with an unambiguous specification for representing group
+          elements as octet strings, and an unambiguous specification for
+          converting an octet string of a specific length into an integer for
+          use as a scalar multiplier.</t>
+        </list></t>
+      </section>
     </section>
 
     <section title="SPAKE Pre-Authentication Message Protocol">
@@ -477,6 +492,14 @@ SPAKEResponse ::= SEQUENCE {
       &rfc4120;
       &rfc6113;
       &spake;
+      <reference anchor='SEC2'>
+        <front>
+          <title>SEC 2: Recommended Elliptic Curve Domain Parameters</title>
+          <author><organization>Standards for Efficient Cryptography
+          Group</organization></author>
+          <date month="January" year="2010" />
+        </front>
+      </reference>
     </references>
     <references title='Non-normative References'>
       &rfc6560;
