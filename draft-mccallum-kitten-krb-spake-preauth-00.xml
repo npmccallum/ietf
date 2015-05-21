@@ -25,22 +25,7 @@
 
     <author fullname="Nathaniel McCallum" initials="N." surname="McCallum">
       <organization>Red Hat, Inc.</organization>
-
-      <address>
-        <postal>
-        <street>100 East Davie Street</street>
-
-        <city>Raleigh</city>
-
-        <region>NC</region>
-
-        <code>27601</code>
-
-        <country>USA</country>
-        </postal>
-        
-        <email>npmccallum@redhat.com</email>
-      </address>
+      <address><email>npmccallum@redhat.com</email></address>
     </author>
     <author fullname="Greg Hudson" initials="G." surname="Hudson">
       <organization>MIT</organization>
