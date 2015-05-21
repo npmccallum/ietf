@@ -4,6 +4,7 @@
 <!ENTITY rfc4120 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.4120.xml">
 <!ENTITY rfc6113 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6113.xml">
 <!ENTITY rfc4120 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.4120.xml">
+<!ENTITY rfc6560 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6560.xml">
 <!ENTITY spake SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-irtf-cfrg-spake2-01.xml">
 ]>
 <?xml-stylesheet type="text/xsl" href="rfc2629.xslt"?>
@@ -41,6 +42,10 @@
         <email>npmccallum@redhat.com</email>
       </address>
     </author>
+    <author fullname="Greg Hudson" initials="G." surname="Hudson">
+      <organization>MIT</organization>
+      <address><email>ghudson@mit.edu</email></address>
+    </author>
     <date month="April" year="2015" />
 
     <area>Security</area>
@@ -48,15 +53,15 @@
     <workgroup>Internet Engineering Task Force</workgroup>
 
     <abstract>
-      <t>This document defines a new password authenticated key exchange based
-      pre-authentication mechanism for performing Kerberos authentication.
-      This mechanism has three goals. First, it makes Kerberos
+      <t>This document defines a new pre-authentication mechanism for performing
+      Kerberos authentication using password authenticated key exchange. This
+      mechanism has three goals. First, it increases the security of the
+      Kerberos pre-authentication exchange by making offline brute-force attacks
+      impossible. Second, it enables the use of secure second factor
+      authentication without FAST by utilizing the existing trust relationship
+      established by the shared first factor. Third, it makes Kerberos
       pre-authentication more resilient against time synchronization errors by
-      removing the need to transfer an encrypted timestamp. Second, it
-      increases the security of the Kerberos pre-authentication exchange by
-      making offline brute-force attacks impossible. Third, it enables the use
-      of secure second factor authentication without FAST by utilizing the
-      existing trust relationship established by the shared first factor.
+      removing the need to transfer an encrypted timestamp.
       </t>
     </abstract>
   </front>
@@ -65,24 +70,24 @@
     <section title="Introduction">
       <t>Existing Kerberos pre-authentication methods generally involve
       encrypting a well-known value, often a timestamp, in the client
-      principal's long-term secret. This approach has two signficant drawbacks.
-      First, where a timestamp is used, time synchronization between the client
-      and KDC becomes a point of fragility. Second, a passive attacker can
-      perform offline brute-force attack against the transferred packet.</t>
+      principal's long-term key. This approach has two significant
+      drawbacks. First, a passive attacker can perform offline brute-force
+      attack against the transferred packet. Second, where a timestamp is used,
+      time synchronization between the client and KDC becomes a point of
+      fragility.</t>
 
       <section title="Properties of PAKE">
         <t>Diffie-Hellman key exchange (DHKE) is a mechanism by which two
-        parties can derive a shared session key over an insecure network which
-	cannot be derived by a passive attacker. DHKE could replace the above
-	approaches without their drawback. Unfortunately, DHKE can be easily
-	compromised by an active attacker by using a man-in-the-middle
-	attack.</t>
+        parties can derive a shared key over an insecure network which cannot be
+        derived by a passive attacker. DHKE could replace the above approaches
+        without their drawback. Unfortunately, DHKE can be easily compromised by
+        an active attacker by using a man-in-the-middle attack.</t>
 
         <t>Password authenticated key exchange (PAKE) is a technique which
         extends DHKE by using a shared secret - in the case of Kerberos, the
-	client principal's long-term secret - in order to protect the
-	underlying DHKE from an active attacker. This property of PAKE makes it
-	ideal for use as a Kerberos pre-authentication mechanism.</t>
+        client principal's long-term key - in order to protect the
+        underlying DHKE from an active attacker. This property of PAKE makes it
+        ideal for use as a Kerberos pre-authentication mechanism.</t>
       </section>
 
       <section title="PAKE and 2FA">
@@ -91,39 +96,40 @@
         require the secure transfer of plaintext material to the KDC for
         verification. This includes one-time passwords, challenge/response
         signatures and biometric data. Attempting to encrypt this data using the
-        long-term password results in packets that are vulnerable to offline
-        brute-force attack; a problem we are already trying to solve.</t>
+        long-term key results in packets that are vulnerable to offline
+        brute-force attack.</t>
 
-        <t>In the past, this problem has been mitigated by FAST which uses a
-        secondary trust relationship to create a secure encryption channel
-        within which pre-authentication data can be sent. However, the
-        requirement for a secondary trust relationship has proven to be
-        cumbersome to deploy and often introduces third parties into the trust
-        chain (such as certificate authorities). By using PAKE, the calculated
-        session key can be leveraged into an encryption key for 2FA data without
-        the need for a secondary trust relationship.</t>
+        <t>In OTP pre-authentication <xref target="RFC6560"/>, this problem is
+        mitigated by FAST <xref target="RFC6113"/>, which uses a secondary trust
+        relationship to create a secure encryption channel within which
+        pre-authentication data can be sent. However, the requirement for a
+        secondary trust relationship has proven to be cumbersome to deploy, and
+        often introduces third parties (such as certificate authorities) into
+        the trust chain. By using PAKE, the calculated key can be leveraged into
+        an encryption key for second factor data without the need for a
+        secondary trust relationship.</t>
       </section>
 
       <section title="Which PAKE?">
         <t>The most common technique in PAKE is to modify a DHKE by encrypting
         one or more of the public keys exchanged using the shared secret. This
         ensures that only the party which knows the shared secret can decrypt
-	the public key and complete the DHKE. The earliest widely deployed PAKE,
+        the public key and complete the DHKE. The earliest widely deployed PAKE,
         which also used this model, was the Diffie-Hellman Encrypted Key
-	Exchange (DH-EKE). Unfortunately, DH-EKE depends on the property that
-	the public key is indistinguishable from random. This unfortunately
-	means that DH-EKE cannot be used with elliptic curve Diffie-Hellman
-	(ECDH).</t>
+        Exchange (DH-EKE). Unfortunately, DH-EKE depends on the property that
+        the public key is indistinguishable from random. This unfortunately
+        means that DH-EKE cannot be used with elliptic curve Diffie-Hellman
+        (ECDH).</t>
 
         <t><xref target="I-D.irtf-cfrg-spake2">SPAKE</xref> is a variant of
         the technique used by DH-EKE which ensures that all public key
-	encryption and decryption operations result in a member of the
-	underlying group. This property allows SPAKE to be used with ECDH,
-	permitting the pre-authentication packets to use markedly smaller key
-	sizes with equivalent security. Additionally, unlike some other PAKE
-	methods, SPAKE can complete the key exchange in just a single
-	round-trip. These properties make SPAKE an ideal PAKE to use for
-	Kerberos pre-authentication.</t>
+        encryption and decryption operations result in a member of the
+        underlying group. This property allows SPAKE to be used with ECDH,
+        permitting the pre-authentication packets to use markedly smaller key
+        sizes with equivalent security. Additionally, unlike some other PAKE
+        methods, SPAKE can complete the key exchange in just a single
+        round-trip. These properties make SPAKE an ideal PAKE to use for
+        Kerberos pre-authentication.</t>
       </section>
     </section>
 
@@ -136,23 +142,40 @@
 
     <section title="Prerequisites">
       <section title="PA-ETYPE-INFO2">
-        <t>KDCs which implement SPAKE pre-authentication MUST return a
-        PA-ETYPE-INFO2. This PA-ETYPE-INFO2 MUST contain only one
-        ETYPE-INFO2-ENTRY. This ETYPE-INFO2-ENTRY will be the etype used for all
-        cryptographic operations and to select the long-term key for the SPAKE
-        operation.</t>
+        <t>A KDC which offers SPAKE pre-authentication MUST supply a
+        PA-ETYPE-INFO2 containing a single ETYPE-INFO2-ENTRY, as described in
+        <xref target="RFC6113"/> section 2.1. The key indicated by this
+        ETYPE-INFO2-ENTRY will be used as the long-term key for operations in
+        this mechanism.</t>
       </section>
 
       <section title="Cookie Support">
         <t>KDCs which implement SPAKE pre-authentication MUST have some secure
-        mechanism for retaining state between AS-REQs. This method will most
-        commonly be an encrypted PA-FX-COOKIE. If PA-FX-COOKIE is used, then
-        clients MUST also support PA-FX-COOKIE.</t>
+        mechanism for retaining state between AS-REQs. For stateless KDC
+        implementations, this method will most commonly be an encrypted
+        PA-FX-COOKIE as defined in <xref target="RFC6113"/> section 5.2. Clients
+        which implement SPAKE pre-authentication MUST support PA-FX-COOKIE.</t>
       </section>
 
       <section title="More Pre-Authentication Data Required">
         <t>Both KDCs and clients which implement SPAKE pre-authentication MUST
-        support the use of KDC_ERR_MORE_PREAUTH_DATA_REQUIRED.</t>
+        support the use of KDC_ERR_MORE_PREAUTH_DATA_REQUIRED as defined in
+        <xref target="RFC6113"/> section 5.2.</t>
+      </section>
+
+      <section title="Group Support">
+        <t>Both KDCs and clients MUST implement one or more groups for which the
+        discrete logarithm problem is hard, each with an corresponding object
+        identifer. Group object identifiers MUST refer to one of the following:
+        <list style="symbols">
+          <t>One of the eight elliptic curves specified in <xref target="SEC2"/>
+          section 2, using the corresponding object identifier from appendix
+          A.2.1.</t>
+          <t>A group with an unambiguous specification for representing group
+          elements as octet strings, and an unambiguous specification for
+          converting an octet string of a specific length into an integer for
+          use as a scalar multiplier.</t>
+        </list></t>
       </section>
     </section>
 
@@ -172,23 +195,25 @@
         an initial authentication service request (AS-REQ) without
         pre-authentication data. Upon receipt of this AS-REQ, a KDC which
         requires pre-authentication and supports SPAKE SHOULD reply with
-        KDC_ERR_PREAUTH_REQUIRED containing an empty PA-SPAKE
-        pre-authentication data. This indicates to the client that the KDC
-        supports SPAKE pre-authentication.</t>
+        a KDC_ERR_PREAUTH_REQUIRED error, with METHOD-DATA containing a PA-DATA
+        element of padata-type PA-SPAKE and an empty padata-value. This
+        indicates to the client that the KDC supports SPAKE
+        pre-authentication.</t>
       </section>
 
       <section title="Second Pass">
         <t>Once the client knows that the KDC supports SPAKE pre-authentication
         and the client desires to use it, the client will generate a new AS-REQ
-        which includes a SPAKESupport message. This message indicates to the KDC
-        which groups the client prefers for the SPAKE operation. The groups
-        sequence is ordered from the most preferred group to the least preferred
-        group.</t>
+        which includes a PA-DATA element of padata-type PA-SPAKE, whose
+        padata-value contains a DER-encoded SPAKESupport message. This message
+        indicates to the KDC which groups the client prefers for the SPAKE
+        operation. The groups sequence is ordered from the most preferred group
+        to the least preferred group.</t>
 
         <figure>
           <artwork><![CDATA[
 SPAKESupport ::= SEQUENCE {
-    groups   SEQUENCE (SIZE(1..MAX)) OF OBJECT IDENTIFIER,
+    groups      [0] SEQUENCE (SIZE(1..MAX)) OF OBJECT IDENTIFIER,
     ...
 }
 ]]></artwork>
@@ -201,15 +226,16 @@ SPAKESupport ::= SEQUENCE {
         another group in hopes that the client might support it.</t>
 
         <t>Once the KDC has selected a group, the KDC will reply to the client
-        with KDC_ERR_MORE_PREAUTH_DATA_REQUIRED containing a SPAKEChallenge
-        message.</t>
+        with a KDC_ERR_MORE_PREAUTH_DATA_REQUIRED error containing a PA-DATA
+        element of type PA-SPAKE, whose padata-value contains a DER-encoded
+        SPAKEChallenge message.</t>
 
         <figure>
           <artwork><![CDATA[
 SPAKEChallenge ::= SEQUENCE {
-    group   OBJECT IDENTIFIER,
-    pubkey  OCTET STRING,
-    factors SEQUENCE (SIZE(1..MAX)) OF SPAKESecondFactor,
+    group       [0] OBJECT IDENTIFIER,
+    pubkey      [1] OCTET STRING,
+    factors     [2] SEQUENCE (SIZE(1..MAX)) OF SPAKESecondFactor,
     ...
 }
 ]]></artwork>
@@ -219,8 +245,8 @@ SPAKEChallenge ::= SEQUENCE {
         calculations.</t>
 
         <t>The pubkey field indicates the KDC's public key generated using the M
-        constant in the SPAKE algorithm. The format of this field's contents and
-        the value of the M constant will depend upon the group chosen.</t>
+        constant in the SPAKE algorithm, with inputs and conversions as
+        specified in <xref target="spakeparams"/>.</t>
 
         <t>The factors field contains an unordered list of second factors which
         can be used to complete the authentication. Each second factor is
@@ -229,8 +255,8 @@ SPAKEChallenge ::= SEQUENCE {
         <figure>
           <artwork><![CDATA[
 SPAKESecondFactor ::= SEQUENCE {
-    type Int32,
-    data OCTET STRING OPTIONAL
+    type        [0] Int32,
+    data        [1] OCTET STRING OPTIONAL
 }
 ]]></artwork>
         </figure>
@@ -245,30 +271,34 @@ SPAKESecondFactor ::= SEQUENCE {
 
       <section title="Third Pass">
         <t>Upon receipt of the SPAKEChallenge message, the client will
-        complete its part of of the SPAKE process resulting in a public key and
-        a SPAKE key. Then, the client derives the session key from the SPAKE
+        complete its part of of the SPAKE process, resulting in a public key and
+        a SPAKE key. Then, the client derives the reply key from the SPAKE
         key.</t>
 
         <t>Next, the client chooses one of the second factor types listed in the
         challenge field of the SPAKEChallenge message and gathers whatever data
         is required for this second factor type; possibly using the challenge
         data for this second factor type. Finally, the client sends an AS-REQ
-        with a SPAKEResponse message.</t>
+        containing a PA-DATA element of type PA-SPAKE, whose padata-value
+        contains a DER-encoded SPAKEResponse message.</t>
 
         <figure>
           <artwork><![CDATA[
 SPAKEResponse ::= SEQUENCE {
-    pubkey OCTET STRING,
-    factor EncryptedData, -- SPAKESecondFactor
+    pubkey      [0] OCTET STRING,
+    factor      [1] EncryptedData, -- SPAKESecondFactor
     ...
 }
 ]]></artwork>
         </figure>
 
+        <t>The pubkey field indicates the KDC's public key generated using the M
+        constant in the SPAKE algorithm, with inputs and conversions as
+        specified in <xref target="spakeparams"/>.</t>
+
         <t>The pubkey field indicates the client's public key generated using
-        the N constant in the SPAKE algorithm. The format of this field's
-        contents and the value of the N constant will depend upon the group
-        chosen by the KDC.</t>
+        the N constant in the SPAKE algorithm, with inputs and conversions as
+        specified in <xref target="spakeparams"/>.</t>
 
         <t>The factor field indicates the client's chosen second factor data.
         This data is encrypted using a derivation of the PAKE key. The plain
@@ -281,59 +311,93 @@ SPAKEResponse ::= SEQUENCE {
 
         <t>When the KDC receives the SPAKEResponse message from the client, it
         will use the pubkey to complete the SPAKE process resulting in the
-        SPAKE key. The KDC will then derive the session key from the SPAKE key.
+        SPAKE key. The KDC will then derive the reply key from the SPAKE key.
         If the SPAKE process is successful, the client and the KDC will have
-        the same SPAKE key and session key.</t>
+        the same SPAKE key and reply key.</t>
 
         <t>The KDC will then use the same derivation of the PAKE key as the
         client to decrypt the factors field. If decryption is successful, the
         first factor is successfully validated. Upon decoding the
         SPAKESecondFactor, the KDC then validates the second factor. If both
-        factors successfully validate, the KDC responds by issuing a TGT
-        encrypted in the session key. If either factor fails to validate, an
-        appropriate KRB-ERROR is returned. If validation of the second factor
-        requires further round-trips, the KDC MUST reply to the client with
-        KDC_ERR_MORE_PREAUTH_DATA_REQUIRED and include an encoded EncryptedData
-        message containing an encoded, encrypted SPAKESecondFactor message. As
-        before, the type field of this message will contain the second factor
-        type and the data field will optionally contain second factor type
-        specific data.</t>
+        factors successfully validate, the KDC responds with a KDC-REP message
+        using the reply key. If either factor fails to validate, an appropriate
+        KRB-ERROR is returned.</t>
+
+        <t>If validation of the second factor requires further round-trips, the
+        KDC MUST reply to the client with KDC_ERR_MORE_PREAUTH_DATA_REQUIRED
+        containing a PA-DATA element of type PA-SPAKE, whose padata-value
+        contains a DER-encoded EncryptedData message.  The plain text of this
+        message contains a DER-encoded SPAKESecondFactor message. As before, the
+        type field of this message will contain the second factor type, and the
+        data field will optionally contain second factor type specific data.</t>
       </section>
 
       <section title="Subsequent Passes">
-        <t>Any number of EncryptedData message roundtrips may occur. The precise
-        details of this are second factor type specific. The only constraint is
-        that if a client receives EncryptedData from the KDC it MUST reply with
-        a subsequent AS-REQ with EncryptedData. These exchanges conclude when
-        the KDC indicates that either authentication has failed (via an
-        appropriate KRB-ERROR) or a TGT has been issued (via an AS-REP).</t>
+        <t>Any number of EncryptedData message roundtrips may occur. The details
+        of these round trips are specific to the second factor type. If a client
+        receives a PA-SPAKE PA-DATA element containing EncryptedData from the
+        KDC, it MUST reply with a subsequent AS-REQ with a PA-SPAKE PA-DATA
+        element containing EncryptedData, or abort the AS exchange. These
+        exchanges conclude when the KDC indicates that either authentication has
+        failed (via an appropriate KRB-ERROR) or a TGT has been issued (via an
+        AS-REP).</t>
       </section>
 
       <section title="Optimizations">
         <t>The full protocol has two possible optimizations.</t>
 
-        <t>First, the KDC MAY reply to the initial AS-REQ containing no
-        pre-authentication data with KDC_ERR_PREAUTH_REQUIRED and a
-        SPAKEChallenge message. In this case the KDC optimistically selects a
-        group which the client may not support. If the group chosen by the
-        SPAKEChallenge message is supported by the client, the client MUST skip
-        to the Third Pass by issuing an AS-REQ with a SPAKEResponse message. If
-        the KDC's chosen group is not supported by the client, the client MUST
-        continue to the Second Pass as if it had received an empty PA-SPAKE.
-        Clients MUST support this optimization.</t>
+        <t>First, the KDC MAY reply to the initial AS-REQ (containing no
+        pre-authentication data) with KDC_ERR_PREAUTH_REQUIRED and a PA-SPAKE
+        PA-DATA element containing a SPAKEChallenge message. In this case, the
+        KDC optimistically selects a group which the client may not support. If
+        the group chosen by the SPAKEChallenge message is supported by the
+        client, the client MUST skip to the third pass by issuing an AS-REQ with
+        a SPAKEResponse message. If the KDC's chosen group is not supported by
+        the client, the client MUST continue to the Second Pass as if it had
+        received an empty PA-SPAKE.  Clients MUST support this optimization.</t>
 
-        <t>Second, clients which are somehow aware that they should use SPAKE
-        pre-authentication with a KDC MAY skip the First Pass entirely. KDCs
-        MUST support this optimization.</t>
+        <t>Second, clients MAY skip the first pass and send an AS-REQ with a
+        PA-SPAKE PA-DATA element containing a SPAKESupport message. KDCs MUST
+        support this optimization.</t>
       </section>
     </section>
 
+    <section title="SPAKE Parameters and Conversions" anchor="spakeparams">
+      <t>The SPAKE algorithm requires a shared secret input w to be used as a
+      scalar multiplier (see <xref target="I-D.irtf-cfrg-spake2"/> section
+      2). This value MUST be produced from the client principal's long-term key
+      as follows:
+      <list style="numbers">
+        <t>Determine a scalar octet string input length for the chosen group.
+        For SEC 2 curves over a prime field F(p), this is ceil(log2(p)/8).  For
+        other groups, this length is specified by the group.</t>
+        <t>Produce an octet string of the above length with PRF+(K,
+        "SPAKEsecret"), where K is the long-term key and PRF+ is defined in
+        <xref target="RFC6113"/> section 5.1.</t>
+        <t>If the chosen group is secp521r1, set the high seven bits of the
+        first byte to 0 so that there are at most 521 significant bits in the
+        octet string.</t>
+        <t>For SEC 2 curves, decode the octet string as a big-endian integer as
+        specified in <xref target="SEC1"/> section 2.3.8.  For other groups,
+        decode the octet string as specified by the group.</t>
+      </list></t>
+      <t>The SPAKE algorithm requires constants M and N for each
+      group.  These constants MUST be taken from <xref
+      target="I-D.irtf-cfrg-spake2"/> section 3 or computed using the
+      method described therein.</t>
+      <t>Group elements are converted to octet strings for the SPAKEChallenge
+      and SPAKEResponse pubkey fields and for key derivation. For SEC 2 curves,
+      group elements are represented as specified in <xref target="SEC1"/>
+      section 2.3.3 with point compression on. For other groups, the
+      representation is specified by the group.</t>
+    </section>
+
     <section title="Key Derivation">
-      <section title="Session Key Derivation">
+      <section title="Reply Key Derivation">
         <t>Implementations MUST NOT use the SPAKE key (denoted by K in Section 2
         of <xref target="I-D.irtf-cfrg-spake2">SPAKE</xref>) directly for
         any cryptographic operation. Instead, the SPAKE key MUST be used to
-        derive a session key as defined in this section. This method differs
+        derive a reply key as defined in this section. This method differs
         slightly from the method used to generate K' in Section 3 of
         <xref target="I-D.irtf-cfrg-spake2">SPAKE</xref> in order to
         provide message integrity.</t>
@@ -347,20 +411,20 @@ SPAKEResponse ::= SEQUENCE {
         messages in the order they were sent or received. This buffer is called
         the transcript hash.</t>
 
-        <t>In order to generate the session key, we concatenate the following
+        <t>In order to generate the reply key, we concatenate the following
         values and pass the resulting buffer, along with the client principal's
         key, as input to the pseudo-random function defined for the etype: the
         uncanonicalized client principal, the uncanonicalized server principal,
         the SPAKE key and the transcript hash. During concatenation, each value
         must be prepended by the value's length as defined in Section 2 of
         <xref target="I-D.irtf-cfrg-spake2">SPAKE</xref>. The output from
-        the pseudo-random function is the session key.</t>
+        the pseudo-random function is the reply key.</t>
       </section>
 
       <section title="Encryption Key Derivation">
         <t>Each EncryptedData message sent MUST use a distinct key, including
         the factor field in the SPAKEResponse message. This key is derived by
-        using a method identical to the Session Key Derivation except for an
+        using a method identical to the reply key derivation except for an
         additional input value appended to the end of the pseudo-random function
         input: an eight-byte big-endian count of the number of EncryptedData
         messages sent or received.</t>
@@ -375,8 +439,7 @@ SPAKEResponse ::= SEQUENCE {
 
       <t>This second factor type indicates that no second factor is used.
       Whenever a SPAKESecondFactor is used with SF-NONE, the data field MUST be
-      omitted. The SF-NONE second factor always successfully validates.
-      </t>
+      omitted. The SF-NONE second factor always successfully validates.</t>
     </section>
 
     <section title="Recommended Groups">
@@ -397,18 +460,34 @@ SPAKEResponse ::= SEQUENCE {
       <xref target="I-D.irtf-cfrg-spake2">SPAKE</xref> apply here as well.</t>
 
       <t>Message integrity is provided by the transcript hash being integrated
-      into the final session key and encryption keys. This prevents downgrade
-      attacks on SPAKESupport and SPAKEChallenge. However, please note that
-      message integrity confirmation does not occur until after SPAKEResponse
-      is sent. This means that data in SPAKEChallenge should be treated as
-      untrusted before this point. The most obvious implication is that
-      SPAKEChallenge should not contain information to prompt the users with
-      as it may be modified to lie or try to do other nasty things.</t>
+      into the final reply key and second factor encryption keys. Downgrade
+      attacks on SPAKESupport and SPAKEChallenge will result in the client and
+      KDC deriving different reply keys and EncryptedData keys.</t>
 
-      <t>However, since the response is encrypted, it is not possible to
-      exploit the untrustworthiness of SPAKEChallenge into an encryption or
-      signing oracle. Any attempt to do this will result in data that cannot
-      be decrypted.</t>
+      <t>Unless FAST is used, the factors field of a SPAKEChallenge message is
+      not integrity-protected. Second factor types MUST account for this when
+      specifying the semantics of the data field. Second factor data in the
+      SPAKEChallenge should be included in user prompts, as it could be modified
+      by an attacker to contain misleading or offensive information.</t>
+
+      <t>Subsequent factor data, including the data in the SPAKEResponse, are
+      encrypted in a derivative of the SPAKE key. Therefore, it is not possible
+      to exploit the untrustworthiness of SPAKEChallenge to turn the client into
+      an encryption or signing oracle, unless the attacker knows the client's
+      long-term key.</t>
+
+      <t>An implementation of this pre-authentication mechanism can have the
+      property of indistinguishability, meaning that an attacker who guesses a
+      long-term key and a second factor value cannot determine whether one of
+      the factors was correct unless both are correct. Indistinguishability is
+      only maintained if the second factor can be validated solely based on the
+      data in the SPAKEResponse; the use of additional round trips will reveal
+      to the attacker whether the long-term key is correct.
+      Indistinguishability also requires that there are no side channels. When
+      processing a SPAKEResponse message, whether or not the KDC successfully
+      decrypts the factor field, it must reply with the same error fields, take
+      the same amount of time, and make the same observable communications to
+      other servers.</t>
 
       <t>Given that each EncryptedData will begin a new encryption context,
       a failure to properly derive the encryption keys will result in a
@@ -418,14 +497,9 @@ SPAKEResponse ::= SEQUENCE {
       a checksum based on one of the following algorithms MUST NOT be used:
       <list style="symbols">
         <t>CRC32</t>
-	<t>MD4</t>
-	<t>MD4</t>
-	<t>MAC</t>
+        <t>MD4</t>
+        <t>MD5</t>
       </list></t>
-
-      <t>If more than one round-trip is required to authenticate a second
-      factor, this reveals to an online brute-force attacker that his first
-      factor guess was correct. This should be avoided if at all possible.</t>
 
       <t>Both the size of the EncryptedData and the number of EncryptedData
       messages may reveal information about the second factor used in an
@@ -451,15 +525,76 @@ SPAKEResponse ::= SEQUENCE {
       &rfc4120;
       &rfc6113;
       &spake;
+      <reference anchor='SEC1'>
+        <front>
+          <title>SEC 1: Elliptic Curve Cryptography</title>
+          <author><organization>Standards for Efficient Cryptography
+          Group</organization></author>
+          <date month="May" year="2009" />
+        </front>
+      </reference>
+      <reference anchor='SEC2'>
+        <front>
+          <title>SEC 2: Recommended Elliptic Curve Domain Parameters</title>
+          <author><organization>Standards for Efficient Cryptography
+          Group</organization></author>
+          <date month="January" year="2010" />
+        </front>
+      </reference>
+    </references>
+    <references title='Non-normative References'>
+      &rfc6560;
     </references>
 <?rfc rfcedstyle="yes"?>
+
+    <section title="ASN.1 Module">
+      <figure>
+        <artwork><![CDATA[
+KerberosV5SPAKE {
+        iso(1) identified-organization(3) dod(6) internet(1)
+        security(5) kerberosV5(2) modules(4) spake(8)
+} DEFINITIONS EXPLICIT TAGS ::= BEGIN
+
+IMPORTS
+    EncryptedData, Int32
+      FROM KerberosV5Spec2 { iso(1) identified-organization(3)
+        dod(6) internet(1) security(5) kerberosV5(2) modules(4)
+        krb5spec2(2) };
+        -- as defined in RFC 4120.
+
+SPAKESupport ::= SEQUENCE {
+    groups      [0] SEQUENCE (SIZE(1..MAX)) OF OBJECT IDENTIFIER,
+    ...
+}
+
+SPAKEChallenge ::= SEQUENCE {
+    group       [0] OBJECT IDENTIFIER,
+    pubkey      [1] OCTET STRING,
+    factors     [2] SEQUENCE (SIZE(1..MAX)) OF SPAKESecondFactor,
+    ...
+}
+
+SPAKESecondFactor ::= SEQUENCE {
+    type        [0] Int32,
+    data        [1] OCTET STRING OPTIONAL
+}
+
+SPAKEResponse ::= SEQUENCE {
+    pubkey      [0] OCTET STRING,
+    factor      [1] EncryptedData, -- SPAKESecondFactor
+    ...
+}
+
+END
+]]></artwork>
+      </figure>
+    </section>
 
     <section title="Acknowledgements">
       <figure>
         <artwork><![CDATA[
   Simo Sorce (Red Hat)
   Nico Williams (Oracle)
-  Greg Hudson (MIT)
   Tom Yu (MIT)
   ]]></artwork>
       </figure>
