@@ -27,10 +27,17 @@
       <organization>Red Hat, Inc.</organization>
       <address><email>npmccallum@redhat.com</email></address>
     </author>
+
+    <author fullname="Simo Sorce" initials="S." surname="Sorce">
+      <organization>Red Hat, Inc.</organization>
+      <address><email>ssorce@redhat.com</email></address>
+    </author>
+
     <author fullname="Greg Hudson" initials="G." surname="Hudson">
       <organization>MIT</organization>
       <address><email>ghudson@mit.edu</email></address>
     </author>
+
     <date month="April" year="2015" />
 
     <area>Security</area>
@@ -578,7 +585,6 @@ END
     <section title="Acknowledgements">
       <figure>
         <artwork><![CDATA[
-  Simo Sorce (Red Hat)
   Nico Williams (Cryptonector)
   Tom Yu (MIT)
   ]]></artwork>
