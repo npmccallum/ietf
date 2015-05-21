@@ -62,66 +62,113 @@
     <section title="Introduction">
       <t>Existing Kerberos pre-authentication methods generally involve
       encrypting a well-known value, often a timestamp, in the client
-      principal's long-term key. This approach has two significant
-      drawbacks. First, a passive attacker can perform offline brute-force
-      attack against the transferred packet. Second, where a timestamp is used,
-      time synchronization between the client and KDC becomes a point of
-      fragility.</t>
+      principal's long-term secret. When using this method a passive attacker
+      can perform offline brute-force attack against the transferred
+      ciphertext when either authenticated encryption is used or the contents
+      of the plaintext are known (or can be reasonably guessed). When the
+      client principal's long-term secret is a password, especially a weak
+      password, offline dictionary attacks can successfully recover the
+      password.</t>
 
       <section title="Properties of PAKE">
-        <t>Diffie-Hellman key exchange (DHKE) is a mechanism by which two
-        parties can derive a shared key over an insecure network which cannot be
-        derived by a passive attacker. DHKE could replace the above approaches
-        without their drawback. Unfortunately, DHKE can be easily compromised by
-        an active attacker by using a man-in-the-middle attack.</t>
+        <t>Password authenticated key exchange (PAKE) algorithms provide
+        several properties which are useful to overcome this problem and make
+        them ideal for use as a Kerberos pre-authentication mechanism.
+        <list style="numbers">
+          <t>Each side of the exchange contributes entropy.</t>
+          <t>Passive attackers cannot determine the shared key.</t>
+          <t>Active attackers cannot perform a man-in-the-middle attack.</t>
+          <t>Either side can store a password or password equivilent.</t>
+        </list></t>
 
-        <t>Password authenticated key exchange (PAKE) is a technique which
-        extends DHKE by using a shared secret - in the case of Kerberos, the
-        client principal's long-term key - in order to protect the
-        underlying DHKE from an active attacker. This property of PAKE makes it
-        ideal for use as a Kerberos pre-authentication mechanism.</t>
-      </section>
-
-      <section title="PAKE and 2FA">
-        <t>Using PAKE in a pre-authentication mechanism also has another benefit
-        when coupled with two-factor authentication (2FA). 2FA methods often
-        require the secure transfer of plaintext material to the KDC for
-        verification. This includes one-time passwords, challenge/response
-        signatures and biometric data. Attempting to encrypt this data using the
-        long-term key results in packets that are vulnerable to offline
-        brute-force attack.</t>
-
-        <t>In OTP pre-authentication <xref target="RFC6560"/>, this problem is
-        mitigated by FAST <xref target="RFC6113"/>, which uses a secondary trust
-        relationship to create a secure encryption channel within which
-        pre-authentication data can be sent. However, the requirement for a
-        secondary trust relationship has proven to be cumbersome to deploy, and
-        often introduces third parties (such as certificate authorities) into
-        the trust chain. By using PAKE, the calculated key can be leveraged into
-        an encryption key for second factor data without the need for a
-        secondary trust relationship.</t>
+        <t>These properties of PAKE allow us to establish high-entropy session
+        keys resistent to offline-brute force attack even when weak passwords
+        are used.</t>
       </section>
 
       <section title="Which PAKE?">
-        <t>The most common technique in PAKE is to modify a DHKE by encrypting
-        one or more of the public keys exchanged using the shared secret. This
-        ensures that only the party which knows the shared secret can decrypt
-        the public key and complete the DHKE. The earliest widely deployed PAKE,
-        which also used this model, was the Diffie-Hellman Encrypted Key
-        Exchange (DH-EKE). Unfortunately, DH-EKE depends on the property that
-        the public key is indistinguishable from random. This unfortunately
-        means that DH-EKE cannot be used with elliptic curve Diffie-Hellman
-        (ECDH).</t>
+        <t>Diffie-Hellman Encrypted Key Exchange (DH-EKE) is the earliest,
+        widely deployed PAKE. It works by encrypting the public keys of a
+        Diffie-Hellman key exchange using the shared secret. However, it
+        requires that both unauthenticated encryption be used and that the
+        public keys be indistinguishable from random data. This data format
+        requirement makes it impossible to use with elliptic curve
+        cryptography. For these reasons, DH-EKE is not a good fit.</t>
+
+        <t>Password authenticated key exchange by juggling (JPAKE) permits
+        the use of elliptic curve cryptography. However, it too has drawbacks.
+        First, the additional computation required for the algorithm makes
+        it resource intensive for servers under load. Second, it requires an
+        additional network round-trip, increasing load on the network.</t>
 
         <t><xref target="I-D.irtf-cfrg-spake2">SPAKE</xref> is a variant of
         the technique used by DH-EKE which ensures that all public key
         encryption and decryption operations result in a member of the
-        underlying group. This property allows SPAKE to be used with ECDH,
-        permitting the pre-authentication packets to use markedly smaller key
-        sizes with equivalent security. Additionally, unlike some other PAKE
-        methods, SPAKE can complete the key exchange in just a single
+        underlying group. This property allows SPAKE to be used with elliptic
+        curve cryptography, permitting the use of markedly smaller key sizes
+        with equivalent security to a standard Diffie-Hellman key exchange.
+        Additionally, SPAKE can complete the key exchange in just a single
         round-trip. These properties make SPAKE an ideal PAKE to use for
         Kerberos pre-authentication.</t>
+      </section>
+
+      <section title="PAKE and 2FA">
+        <t>Using PAKE in a pre-authentication mechanism also has another
+        benefit when coupled with two-factor authentication (2FA). 2FA methods
+        often require the secure transfer of plaintext material to the KDC for
+        verification. This includes one-time passwords, challenge/response
+        signatures and biometric data. Attempting to encrypt this data using
+        the long-term secret results in packets that are vulnerable to offline
+        brute-force attack if either authenticated encryption is used or if
+        the plaintext is distinguishable from random data. This is a problem
+        that PAKE solves for first factor authentication. So a similar
+        technique can be used with PAKE to encrypt second-factor data.</t>
+
+        <t>In OTP pre-authentication <xref target="RFC6560"/>, this problem
+        has been mitigated by FAST <xref target="RFC6113"/>, which uses a
+        secondary trust relationship to create a secure encryption channel
+        within which pre-authentication data can be sent. However, the
+        requirement for a secondary trust relationship has proven to be
+        cumbersome to deploy and often introduces third parties into the trust
+        chain (such as certification authorities). These requirements lead to
+        a scenario where FAST cannot be enabled by default without sufficient
+        configuration. However, by deriving existing key data using the
+        entropy from the PAKE, the resulting encryption key can be used to
+        securely encrypt 2FA plaintext data without the need for a secondary
+        trust relationship. Further, if the first and second factor verifiers
+        are sent at the same time and the KDC is careful to prevent timing
+        attacks then an online brute-force attacker cannot attack each factor
+        separately.</t>
+
+        <t>For these reasons, this draft departs from the advice given in
+        Section 1 of <xref target="RFC6113">RFC 6113</xref> which states that
+        "Mechanism designers should design FAST factors, instead of new
+        pre-authentication mechanisms outside of FAST." However, this
+        pre-authentication mechanism does not intend to replace FAST and may
+        be used with it to further conceal the metadata of the Kerberos
+        messages.</t>
+      </section>
+
+      <section title="SPAKE Overview">
+        <t>The <xref target="I-D.irtf-cfrg-spake2">SPAKE</xref> algorithm can
+        be broadly described in a series of four steps:
+        <list style="numbers">
+          <t>Calculation and exchange of the public key</t>
+          <t>Calculation of the session key (K)</t>
+          <t>Derivation (K') of the session key (K)</t>
+          <t>Verification of the derived session key (K')</t>
+        </list></t>
+
+        <t>This pre-authentication mechanism departs from the above algorithm
+        at two particular points:</t>
+
+        <t>First, we derive the session key in a slightly different way so as
+        to incorporate a transcript hash, providing message integrity.</t>
+
+        <t>Second, since we are encrypting 2FA data using a derivation of K',
+        no explicit verification of the session key needs to occur.
+        Verification happens implicitly by a successful decryption of the 2FA
+        data.</t>
       </section>
     </section>
 
