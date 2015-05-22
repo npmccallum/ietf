@@ -336,15 +336,11 @@ SPAKEResponse ::= SEQUENCE {
 ]]></artwork>
         </figure>
 
-        <t>The pubkey field indicates the KDC's public key generated using the
-        M constant in the SPAKE algorithm, with inputs and conversions as
+        <t>The pubkey field indicates the client's public key generated using
+        the N constant in the SPAKE algorithm, with inputs and conversions as
         specified in <xref target="spakeparams"/>.  The client and KDC update
         the transcript checksum with the pubkey value, and use the resulting
         checksum for all SPAKE key derivations.</t>
-
-        <t>The pubkey field indicates the client's public key generated using
-        the N constant in the SPAKE algorithm, with inputs and conversions as
-        specified in <xref target="spakeparams"/>.</t>
 
         <t>The factor field indicates the client's chosen second factor data.
         The key for this field is K'[1] as specified in <xref
