@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="US-ASCII"?>
 <!DOCTYPE rfc SYSTEM "rfc2629.dtd" [
 <!ENTITY rfc2119 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2119.xml">
+<!ENTITY rfc3961 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.3961.xml">
 <!ENTITY rfc4120 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.4120.xml">
 <!ENTITY rfc6113 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6113.xml">
 <!ENTITY rfc4120 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.4120.xml">
@@ -61,7 +62,7 @@
   <middle>
     <section title="Introduction">
       <t>The most widely deployed Kerberos pre-authentication method, <xref
-      target="RFC4210"/> section 5.2.7.2, encrypts a timestamp in the client
+      target="RFC4120"/> section 5.2.7.2, encrypts a timestamp in the client
       principal's long-term secret. When a client uses this method, a passive
       attacker can perform an offline brute-force attack against the
       transferred ciphertext. When the client principal's long-term key is
@@ -257,6 +258,10 @@ SPAKESupport ::= SEQUENCE {
 ]]></artwork>
         </figure>
 
+        <t>The client and KDC initialize a transcript checksum (<xref
+        target="tcksum"/>) and update it with the encoded SPAKESupport
+        message.</t>
+
         <t>Upon receipt of the SPAKESupport message, the KDC will select a
         group. The KDC SHOULD choose a group from the groups provided by the
         SPAKESupport message. However, if the SPAKESupport message does not
@@ -266,7 +271,8 @@ SPAKESupport ::= SEQUENCE {
         <t>Once the KDC has selected a group, the KDC will reply to the client
         with a KDC_ERR_MORE_PREAUTH_DATA_REQUIRED error containing a PA-DATA
         element of type PA-SPAKE, whose padata-value contains a DER-encoded
-        SPAKEChallenge message.</t>
+        SPAKEChallenge message.  The client and KDC update the transcript
+        checksum with the encoded message.</t>
 
         <figure>
           <artwork><![CDATA[
@@ -330,48 +336,56 @@ SPAKEResponse ::= SEQUENCE {
 ]]></artwork>
         </figure>
 
-        <t>The pubkey field indicates the KDC's public key generated using the M
-        constant in the SPAKE algorithm, with inputs and conversions as
-        specified in <xref target="spakeparams"/>.</t>
+        <t>The pubkey field indicates the KDC's public key generated using the
+        M constant in the SPAKE algorithm, with inputs and conversions as
+        specified in <xref target="spakeparams"/>.  The client and KDC update
+        the transcript checksum with the pubkey value, and use the resulting
+        checksum for all SPAKE key derivations.</t>
 
         <t>The pubkey field indicates the client's public key generated using
         the N constant in the SPAKE algorithm, with inputs and conversions as
         specified in <xref target="spakeparams"/>.</t>
 
         <t>The factor field indicates the client's chosen second factor data.
-        This data is encrypted using a derivation of the PAKE key. The plain
-        text inside the EncryptedData is an encoding of SPAKESecondFactor. Once
-        decoded, the SPAKESecondFactor contains the type of the second factor
-        and any optional data used. The contents of the data field will depend
-        on the second factor type chosen. The client MUST NOT send a response
-        containing a second factor type which was not listed in the factors
-        field of the SPAKEChallenge message.</t>
+        The key for this field is K'[1] as specified in <xref
+        target="keyderiv"/>. The key usage number for the encryption is
+        KEY_USAGE_SPAKE_FACTOR. The plain text inside the EncryptedData is an
+        encoding of SPAKESecondFactor. Once decoded, the SPAKESecondFactor
+        contains the type of the second factor and any optional data used. The
+        contents of the data field will depend on the second factor type
+        chosen. The client MUST NOT send a response containing a second factor
+        type which was not listed in the factors field of the SPAKEChallenge
+        message.</t>
 
         <t>When the KDC receives the SPAKEResponse message from the client, it
-        will use the pubkey to complete the SPAKE process resulting in the
-        SPAKE key. The KDC will then derive the reply key from the SPAKE key.
-        If the SPAKE process is successful, the client and the KDC will have
-        the same SPAKE key and reply key.</t>
-
-        <t>The KDC will then use the same derivation of the PAKE key as the
-        client to decrypt the factors field. If decryption is successful, the
-        first factor is successfully validated. Upon decoding the
-        SPAKESecondFactor, the KDC then validates the second factor. If both
-        factors successfully validate, the KDC responds with a KDC-REP message
-        using the reply key. If either factor fails to validate, an appropriate
-        KRB-ERROR is returned.</t>
+        will use the pubkey to compute the SPAKE result, derive K'[1], and
+        decrypt the factors field. If decryption is successful, the first
+        factor is successfully validated. The KDC then validates the second
+        factor. If both factors successfully validate, the KDC replaces the
+        reply key with K'[0] as specified in <xref target="keyderiv"/> and
+        responds with a KDC-REP message. If either factor fails to validate,
+        the KDC responds with an appropriate KRB-ERROR message.</t>
 
         <t>If validation of the second factor requires further round-trips, the
         KDC MUST reply to the client with KDC_ERR_MORE_PREAUTH_DATA_REQUIRED
         containing a PA-DATA element of type PA-SPAKE, whose padata-value
-        contains a DER-encoded EncryptedData message.  The plain text of this
-        message contains a DER-encoded SPAKESecondFactor message. As before, the
-        type field of this message will contain the second factor type, and the
-        data field will optionally contain second factor type specific data.</t>
+        contains a DER-encoded EncryptedData message. The key for this message
+        is K'[2] as specified in <xref target="keyderiv"/>, and the key usage
+        number is KEY_USAGE_SPAKE_FACTOR. The plain text of this message
+        contains a DER-encoded SPAKESecondFactor message. As before, the type
+        field of this message will contain the second factor type, and the
+        data field will optionally contain second factor type specific
+        data.</t>
+
+        <figure>
+          <artwork><![CDATA[
+KEY_USAGE_SPAKE_FACTOR                  TBD
+]]></artwork>
+        </figure>
       </section>
 
       <section title="Subsequent Passes">
-        <t>Any number of EncryptedData message roundtrips may occur. The details
+        <t>Any number of EncryptedData message roundtrips may occur. The contents
         of these round trips are specific to the second factor type. If a client
         receives a PA-SPAKE PA-DATA element containing EncryptedData from the
         KDC, it MUST reply with a subsequent AS-REQ with a PA-SPAKE PA-DATA
@@ -379,9 +393,15 @@ SPAKEResponse ::= SEQUENCE {
         exchanges conclude when the KDC indicates that either authentication has
         failed (via an appropriate KRB-ERROR) or a TGT has been issued (via an
         AS-REP).</t>
+
+        <t>The key for client-originated EncryptedData messages in subsequent
+        passes is K'[3] as specified in <xref target="keyderiv"/> for the
+        first subsequent pass, K'[5] for the second, and so on. The key for
+        KDC-originated EncryptedData messages is K'[4] for the first
+        subsequent pass, K'[6] for the second, and so on.</t>
       </section>
 
-      <section title="Optimizations">
+      <section title="Optimizations" anchor="optimizations">
         <t>The full protocol has two possible optimizations.</t>
 
         <t>First, the KDC MAY reply to the initial AS-REQ (containing no
@@ -430,43 +450,68 @@ SPAKEResponse ::= SEQUENCE {
       representation is specified by the group.</t>
     </section>
 
-    <section title="Key Derivation">
-      <section title="Reply Key Derivation">
-        <t>Implementations MUST NOT use the SPAKE key (denoted by K in Section 2
-        of <xref target="I-D.irtf-cfrg-spake2">SPAKE</xref>) directly for
-        any cryptographic operation. Instead, the SPAKE key MUST be used to
-        derive a reply key as defined in this section. This method differs
-        slightly from the method used to generate K' in Section 3 of
-        <xref target="I-D.irtf-cfrg-spake2">SPAKE</xref> in order to
-        provide message integrity.</t>
+    <section title="Transcript Checksum" anchor="tcksum">
+      <t>The transcript checksum is an octet string of length equal to the
+      output length of the required checksum type of the encryption type of
+      the client principal's long-term key (see <xref target="RFC3961"/>
+      section 3). It initially contains all zero values.</t>
 
-        <t>Whenever a SPAKESupport or SPAKEChallenge message is sent or
-        received, its encoded representation MUST be checksummed according to
-        the mandatory checksum for the negotiated etype. Similarly, whenever a
-        SPAKEResponse message is sent or received, its pubkey attribute MUST be
-        encoded separately and checksummed. Each checksum MUST be concatenated
-        to the end of a buffer containing the checksums of all previous
-        messages in the order they were sent or received. This buffer is called
-        the transcript hash.</t>
+      <t>When the transcript checksum is updated with an octet string
+      input, the new value is the checksum (as defined by the <xref
+      target="RFC3961"/> section 4 get-mic operation) computed over
+      the concatenation of the old value and the input.  The checksum
+      is computed using the client principal's long-term key, the
+      required checksum type for that key's encryption type, and the
+      key usage number KEY_USAGE_SPAKE_TRANSCRIPT.</t>
 
-        <t>In order to generate the reply key, we concatenate the following
-        values and pass the resulting buffer, along with the client principal's
-        key, as input to the pseudo-random function defined for the etype: the
-        uncanonicalized client principal, the uncanonicalized server principal,
-        the SPAKE key and the transcript hash. During concatenation, each value
-        must be prepended by the value's length as defined in Section 2 of
-        <xref target="I-D.irtf-cfrg-spake2">SPAKE</xref>. The output from
-        the pseudo-random function is the reply key.</t>
-      </section>
+      <t>In the normal message flow or with the second optimization described
+      in <xref target="optimizations"/>, the transcript checksum is first
+      updated with the client's SPAKESupport message, then the KDC's
+      SPAKEChallenge message, and finally with the client's pubkey value. It
+      therefore incorporates the client's supported groups, the KDC's chosen
+      group, the KDC's initial second-factor messages, and the client and KDC
+      public values.</t>
 
-      <section title="Encryption Key Derivation">
-        <t>Each EncryptedData message sent MUST use a distinct key, including
-        the factor field in the SPAKEResponse message. This key is derived by
-        using a method identical to the reply key derivation except for an
-        additional input value appended to the end of the pseudo-random function
-        input: an eight-byte big-endian count of the number of EncryptedData
-        messages sent or received.</t>
-      </section>
+      <t>If the first optimization described in <xref target="optimizations"/>
+      is used successfully, the transcript checksum is updated only with the
+      KDC's SPAKEChallenge message and the client's pubkey value.</t>
+
+      <t>If first optimization is used unsuccessfully (i.e. the client does
+      not accept the KDC's selected group), the transcript checksum is updated
+      with the KDC's optimistic SPAKEChallenge message, then with the client's
+      SPAKESupport message, then the KDC's second SPAKEChallenge message, and
+      finally with the client's pubkey value.</t>
+
+      <figure>
+        <artwork><![CDATA[
+KEY_USAGE_SPAKE_TRANSCRIPT              TBD
+]]></artwork>
+      </figure>
+    </section>
+
+    <section title="Key Derivation" anchor="keyderiv">
+      <t>Implementations MUST NOT use the SPAKE result (denoted by K in
+      Section 2 of <xref target="I-D.irtf-cfrg-spake2">SPAKE</xref>) directly
+      for any cryptographic operation. Instead, the SPAKE result is used to
+      derive keys K'[n] as defined in this section. This method differs
+      slightly from the method used to generate K' in Section 3 of <xref
+      target="I-D.irtf-cfrg-spake2">SPAKE</xref> in order to provide message
+      integrity.</t>
+
+      <t>A PRF+ input string is assembled by concatenating the following
+      values:
+      <list style="symbols">
+        <t>The fixed string "SPAKEKey".</t>
+        <t>The SPAKE result K, converted to an octet string as specified in
+        <xref target="spakeparams"/>.</t>
+        <t>The transcript checksum.</t>
+        <t>The KDC-REQ-BODY encoding for this request.</t>
+        <t>The value n as a big-endian four-byte unsigned binary number.</t>
+      </list>
+      The derived key K'[n] has the same encryption type as the client
+      long-term key, and has value random-to-key(PRF+(clientkey,
+      inputstring)). PRF+ is defined in <xref target="RFC6113"/> section
+      5.1.</t>
     </section>
 
     <section title="Second Factor Types">
@@ -545,6 +590,16 @@ SPAKEResponse ::= SEQUENCE {
       small and as few as possible.</t>
     </section>
 
+    <section title="Assigned Constants">
+      <t>The following key usage values are assigned for this mechanism:</t>
+        <figure>
+          <artwork><![CDATA[
+KEY_USAGE_SPAKE_TRANSCRIPT              TBD
+KEY_USAGE_SPAKE_FACTOR                  TBD
+]]></artwork>
+        </figure>
+    </section>
+
     <section title="IANA Considerations">
       <t>One registry for numeric values has been created: Kerberos
       Second Factor Type Numbers.  These are signed values ranging from
@@ -560,6 +615,7 @@ SPAKEResponse ::= SEQUENCE {
 <?rfc rfcedstyle="no"?>
     <references title="Normative References">
       &rfc2119;
+      &rfc3961;
       &rfc4120;
       &rfc6113;
       &spake;
