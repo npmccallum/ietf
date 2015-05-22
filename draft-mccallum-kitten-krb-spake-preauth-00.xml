@@ -60,15 +60,13 @@
 
   <middle>
     <section title="Introduction">
-      <t>Existing Kerberos pre-authentication methods generally involve
-      encrypting a well-known value, often a timestamp, in the client
-      principal's long-term secret. When using this method a passive attacker
-      can perform offline brute-force attack against the transferred
-      ciphertext when either authenticated encryption is used or the contents
-      of the plaintext are known (or can be reasonably guessed). When the
-      client principal's long-term secret is a password, especially a weak
-      password, offline dictionary attacks can successfully recover the
-      password.</t>
+      <t>The most widely deployed Kerberos pre-authentication method, <xref
+      target="RFC4210"/> section 5.2.7.2, encrypts a timestamp in the client
+      principal's long-term secret. When a client uses this method, a passive
+      attacker can perform an offline brute-force attack against the
+      transferred ciphertext. When the client principal's long-term key is
+      based on a password, especially a weak password, offline dictionary
+      attacks can successfully recover the key.</t>
 
       <section title="Properties of PAKE">
         <t>Password authenticated key exchange (PAKE) algorithms provide
@@ -82,15 +80,15 @@
         </list></t>
 
         <t>These properties of PAKE allow us to establish high-entropy session
-        keys resistent to offline-brute force attack even when weak passwords
+        keys resistent to offline brute force attack, even when weak passwords
         are used.</t>
       </section>
 
       <section title="Which PAKE?">
-        <t>Diffie-Hellman Encrypted Key Exchange (DH-EKE) is the earliest,
+        <t>Diffie-Hellman Encrypted Key Exchange (DH-EKE) is the earliest
         widely deployed PAKE. It works by encrypting the public keys of a
         Diffie-Hellman key exchange using the shared secret. However, it
-        requires that both unauthenticated encryption be used and that the
+        requires both that unauthenticated encryption be used and that the
         public keys be indistinguishable from random data. This data format
         requirement makes it impossible to use with elliptic curve
         cryptography. For these reasons, DH-EKE is not a good fit.</t>
@@ -99,20 +97,21 @@
         the use of elliptic curve cryptography. However, it too has drawbacks.
         First, the additional computation required for the algorithm makes
         it resource intensive for servers under load. Second, it requires an
-        additional network round-trip, increasing load on the network.</t>
+        additional network round-trip, increasing latency and load on the
+        network.</t>
 
         <t><xref target="I-D.irtf-cfrg-spake2">SPAKE</xref> is a variant of
         the technique used by DH-EKE which ensures that all public key
         encryption and decryption operations result in a member of the
         underlying group. This property allows SPAKE to be used with elliptic
         curve cryptography, permitting the use of markedly smaller key sizes
-        with equivalent security to a standard Diffie-Hellman key exchange.
-        Additionally, SPAKE can complete the key exchange in just a single
-        round-trip. These properties make SPAKE an ideal PAKE to use for
-        Kerberos pre-authentication.</t>
+        with equivalent security to a finite-field Diffie-Hellman key
+        exchange. Additionally, SPAKE can complete the key exchange in just a
+        single round-trip. These properties make SPAKE an ideal PAKE to use
+        for Kerberos pre-authentication.</t>
       </section>
 
-      <section title="PAKE and 2FA">
+      <section title="PAKE and Two-Factor Authentication">
         <t>Using PAKE in a pre-authentication mechanism also has another
         benefit when coupled with two-factor authentication (2FA). 2FA methods
         often require the secure transfer of plaintext material to the KDC for
@@ -144,7 +143,7 @@
         Section 1 of <xref target="RFC6113">RFC 6113</xref> which states that
         "Mechanism designers should design FAST factors, instead of new
         pre-authentication mechanisms outside of FAST." However, this
-        pre-authentication mechanism does not intend to replace FAST and may
+        pre-authentication mechanism does not intend to replace FAST, and may
         be used with it to further conceal the metadata of the Kerberos
         messages.</t>
       </section>
