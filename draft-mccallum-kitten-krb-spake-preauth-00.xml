@@ -549,8 +549,9 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       <t>Unless FAST is used, the factors field of a SPAKEChallenge message is
       not integrity-protected. Second factor types MUST account for this when
       specifying the semantics of the data field. Second factor data in the
-      SPAKEChallenge should be included in user prompts, as it could be modified
-      by an attacker to contain misleading or offensive information.</t>
+      SPAKEChallenge should not be included in user prompts, as it could be
+      modified by an attacker to contain misleading or offensive
+      information.</t>
 
       <t>Subsequent factor data, including the data in the SPAKEResponse, are
       encrypted in a derivative of the shared secret K. Therefore, it is not
@@ -587,6 +588,63 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       messages may reveal information about the second factor used in an
       authentication. Care should be taken to keep second factor messages as
       small and as few as possible.</t>
+
+      <t>A stateless KDC implementation generally must use a PA-FX-COOKIE
+      value to remember its private scalar value x and the transcript
+      checksum. The KDC MUST maintain confidentiality and integrity of the
+      cookie value, perhaps by encrypting it in a key known only to the
+      realm's KDCs. Cookie values may be replayed by attackers. The KDC SHOULD
+      limit the time window of replays using a timestamp, and SHOULD prevent
+      cookie values from being applied to other pre-authentication mechanisms
+      or other client principals.</t>
+
+      <t>Any side channels in the creation of the shared secret input w, or in
+      the multiplications wM and wN, could allow an attacker to recover the
+      client long-term key. Implementations MUST take care to avoid side
+      channels, particularly timing channels. Generation of the secret scalar
+      values x and y need not take constant time, but the amount of time taken
+      MUST NOT provide information about the resulting value.</t>
+
+      <t>This pre-authentication mechanism is not designed to provide forward
+      secrecy. Nevertheless, some measure of forward secrecy may result
+      depending on implementation choices. A passive attacker who determines
+      the client long-term key after the exchange generally will not be able
+      to recover the ticket session key; however, an attacker who also
+      determines the PA-FX-COOKIE encryption key (if the KDC uses an encrypted
+      cookie) will be able to recover the ticket session key. The KDC can
+      mitigate this risk by periodically rotating the cookie encryption
+      key. If the KDC or client retains the x or y value for reuse, an
+      attacker who recovers the x or y value and the client long-term key will
+      be able to recover the ticket session key.</t>
+
+      <t>Although this pre-authentication mechanism is designed to prevent an
+      offline dictionary attack by an active attacker posing as the KDC, such
+      an attacker can attempt to downgrade the client to encrypted
+      timestamp. Client implementations SHOULD provide a configuration option
+      to disable encrypted timestamp on a per-realm basis to mitigate this
+      attack.</t>
+
+      <t>Like any other pre-authentication mechanism using the client
+      long-term key, this pre-authentication mechanism does not prevent online
+      password guessing attacks. The KDC is made aware of unsuccessful
+      guesses, and can apply facilities such as password lockout to mitigate
+      the risk of online attacks.</t>
+
+      <t>Elliptic curve group operations are more computationally expensive
+      than secret-key operations. As a result, the use of this mechanism may
+      affect the KDC's performance under normal load and its resistance to
+      denial of service attacks.</t>
+
+      <t>The selected group's resistance to offline brute-force attacks may
+      not correspond to the brute-force resistance of the secret key
+      encryption type. For performance reasons, a KDC MAY select a group whose
+      brute-force resistance is weaker than the secret key. A passive attacker
+      who solves the group discrete logarithm problem after the exchange will
+      be able to conduct an offline attack against the client long-term
+      key. Although the use of password policies and costly, salted
+      string-to-key functions may increase the cost of such an attack, the
+      resulting cost will likely not be higher than the cost of solving the
+      group discrete logarithm.</t>
     </section>
 
     <section title="Assigned Constants">
