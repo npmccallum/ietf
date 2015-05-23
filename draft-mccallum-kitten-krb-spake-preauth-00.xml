@@ -434,6 +434,11 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
         specified in <xref target="SEC1"/> section 2.3.8.  For other groups,
         decode the octet string as specified by the group.</t>
       </list></t>
+      <t>The KDC chooses a secret scalar value x and the client chooses a
+      secret scalar value y. As required by the SPAKE algorithm, these values
+      are chosen randomly and uniformly. The KDC and client MAY reuse x or y
+      values across multiple pre-authentication operations using the same
+      group.</t>
       <t>The SPAKE algorithm requires constants M and N for each
       group.  These constants MUST be taken from <xref
       target="I-D.irtf-cfrg-spake2"/> section 3 or computed using the
