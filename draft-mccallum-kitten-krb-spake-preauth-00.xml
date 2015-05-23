@@ -80,9 +80,9 @@
           <t>Either side can store a password or password equivilent.</t>
         </list></t>
 
-        <t>These properties of PAKE allow us to establish high-entropy session
-        keys resistent to offline brute force attack, even when weak passwords
-        are used.</t>
+        <t>These properties of PAKE allow us to establish high-entropy
+        encryption keys resistent to offline brute force attack, even when
+        weak passwords are used.</t>
       </section>
 
       <section title="Which PAKE?">
@@ -154,19 +154,21 @@
         be broadly described in a series of four steps:
         <list style="numbers">
           <t>Calculation and exchange of the public key</t>
-          <t>Calculation of the session key (K)</t>
-          <t>Derivation (K') of the session key (K)</t>
-          <t>Verification of the derived session key (K')</t>
+          <t>Calculation of the shared secret (K)</t>
+          <t>Derivation of an encryption key (K')</t>
+          <t>Verification of the derived encryption key (K')</t>
         </list></t>
 
-        <t>Higher level protocols must define their own verification step.
-        In the case of this protocol, verification happens implicitly by a
+        <t>Higher level protocols must define their own verification step. In
+        the case of this mechanism, verification happens implicitly by a
         successful decryption of the 2FA data.</t>
 
-        <t>Additionally, this pre-authentication mechanism departs from the
-        above algorithm at one important point: we derive the session key in
-        a slightly different way so as to incorporate a transcript hash,
-        providing message integrity.</t>
+        <t>This mechanism also provides its own method of deriving encryption
+        keys from the calculated shared secret K, for several reasons: to fit
+        within the framework of <xref target="RFC3961"/>, to ensure
+        negotiation integrity using a transcript hash, to derive different
+        keys for each use, and to bind the KDC-REQ-BODY to the
+        pre-authentication exchange.</t>
       </section>
     </section>
 
@@ -313,9 +315,8 @@ SPAKESecondFactor ::= SEQUENCE {
 
       <section title="Third Pass">
         <t>Upon receipt of the SPAKEChallenge message, the client will
-        complete its part of of the SPAKE process, resulting in a public key
-        and a session key. Then, the client derives the reply key from the
-        session key.</t>
+        complete its part of of the SPAKE process, resulting in the shared
+        secret K.</t>
 
         <t>Next, the client chooses one of the second factor types listed in the
         challenge field of the SPAKEChallenge message and gathers whatever data
@@ -338,7 +339,7 @@ SPAKEResponse ::= SEQUENCE {
         the N constant in the SPAKE algorithm, with inputs and conversions as
         specified in <xref target="spakeparams"/>.  The client and KDC update
         the transcript checksum with the pubkey value, and use the resulting
-        checksum for all session key derivations.</t>
+        checksum for all encryption key derivations.</t>
 
         <t>The factor field indicates the client's chosen second factor data.
         The key for this field is K'[1] as specified in <xref
@@ -489,8 +490,7 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       for any cryptographic operation. Instead, the SPAKE result is used to
       derive keys K'[n] as defined in this section. This method differs
       slightly from the method used to generate K' in Section 3 of <xref
-      target="I-D.irtf-cfrg-spake2">SPAKE</xref> in order to provide message
-      integrity.</t>
+      target="I-D.irtf-cfrg-spake2">SPAKE</xref>.</t>
 
       <t>A PRF+ input string is assembled by concatenating the following
       values:
@@ -548,7 +548,7 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       by an attacker to contain misleading or offensive information.</t>
 
       <t>Subsequent factor data, including the data in the SPAKEResponse, are
-      encrypted in a derivative of the session key. Therefore, it is not
+      encrypted in a derivative of the shared secret K. Therefore, it is not
       possible to exploit the untrustworthiness of SPAKEChallenge to turn the
       client into an encryption or signing oracle, unless the attacker knows
       the client's long-term key.</t>
