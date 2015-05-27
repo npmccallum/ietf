@@ -179,11 +179,11 @@
 
     <section title="Prerequisites">
       <section title="PA-ETYPE-INFO2">
-        <t>A KDC which offers SPAKE pre-authentication MUST supply a
-        PA-ETYPE-INFO2 containing a single ETYPE-INFO2-ENTRY, as described in
-        <xref target="RFC6113"/> section 2.1. The key indicated by this
-        ETYPE-INFO2-ENTRY will be used as the long-term key for operations in
-        this mechanism.</t>
+        <t>This mechanism requires the initial KDC pre-authentication state to
+        contain a singular reply key. Therefore, a KDC which offers SPAKE
+        pre-authentication as a stand-alone mechanism MUST supply a
+        PA-ETYPE-INFO2 value containing a single ETYPE-INFO2-ENTRY, as
+        described in <xref target="RFC6113"/> section 2.1.</t>
       </section>
 
       <section title="Cookie Support">
@@ -217,6 +217,17 @@
     </section>
 
     <section title="SPAKE Pre-Authentication Message Protocol">
+      <t>The SPAKE pre-authentication mechanism uses the reply key, and
+      provides the Client Authentication and Strengthening Reply Key
+      facilities described in <xref target="RFC6113"/> section 3. When the
+      mechanism completes successfully, the client will have proved knowledge
+      of the original reply key and possibly a second factor, and the reply
+      key will be strengthened to a more uniform distribution based on the
+      PAKE exchange. This mechanism also ensures the integrity of the
+      KDC-REQ-BODY contents. This mechanism can be used in an authentication
+      set (<xref target="RFC6113"/> section 5.3); no pa-hint value is required
+      or defined.</t>
+
       <t>This section will describe the flow of messages when performing SPAKE
       pre-authentication. We will begin by explaining the most verbose version
       of the protocol which all implementations MUST support. Then we will
@@ -355,10 +366,8 @@ SPAKEResponse ::= SEQUENCE {
         will use the pubkey to compute the SPAKE result, derive K'[1], and
         decrypt the factors field. If decryption is successful, the first
         factor is successfully validated. The KDC then validates the second
-        factor. If both factors successfully validate, the KDC replaces the
-        reply key with K'[0] as specified in <xref target="keyderiv"/> and
-        responds with a KDC-REP message. If either factor fails to validate,
-        the KDC responds with an appropriate KRB-ERROR message.</t>
+        factor. If either factor fails to validate, the KDC responds with an
+        appropriate KRB-ERROR message.</t>
 
         <t>If validation of the second factor requires further round-trips, the
         KDC MUST reply to the client with KDC_ERR_MORE_PREAUTH_DATA_REQUIRED
@@ -383,16 +392,25 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
         of these round trips are specific to the second factor type. If a client
         receives a PA-SPAKE PA-DATA element containing EncryptedData from the
         KDC, it MUST reply with a subsequent AS-REQ with a PA-SPAKE PA-DATA
-        element containing EncryptedData, or abort the AS exchange. These
-        exchanges conclude when the KDC indicates that either authentication has
-        failed (via an appropriate KRB-ERROR) or a TGT has been issued (via an
-        AS-REP).</t>
+        element containing EncryptedData, or abort the AS exchange.</t>
 
         <t>The key for client-originated EncryptedData messages in subsequent
         passes is K'[3] as specified in <xref target="keyderiv"/> for the
         first subsequent pass, K'[5] for the second, and so on. The key for
         KDC-originated EncryptedData messages is K'[4] for the first
         subsequent pass, K'[6] for the second, and so on.</t>
+      </section>
+
+      <section title="Reply Key Strengthening">
+        <t>When the KDC has successfully validated both factors, the reply key
+        is strengthened and the mechanism is complete. To strengthen the reply
+        key, the client and KDC replace it with K'[0] as specified in <xref
+        target="keyderiv"/>. The KDC then replies with a KDC-REP message, or
+        continues on to the next mechanism in the authentication set. There is
+        no final PA-SPAKE PA-DATA message from the KDC to the client.</t>
+        <t>Reply key strengthening occurs only once at the end of the
+        exchange. The client and KDC MUST use the initial reply key as the
+        base key for all K'[n] derivations.</t>
       </section>
 
       <section title="Optimizations" anchor="optimizations">
@@ -417,15 +435,14 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
     <section title="SPAKE Parameters and Conversions" anchor="spakeparams">
       <t>The SPAKE algorithm requires a shared secret input w to be used as a
       scalar multiplier (see <xref target="I-D.irtf-cfrg-spake2"/> section
-      2). This value MUST be produced from the client principal's long-term key
-      as follows:
+      2). This value MUST be produced from the initial reply key as follows:
       <list style="numbers">
         <t>Determine a scalar octet string input length for the chosen group.
         For SEC 2 curves over a prime field F(p), this is ceil(log2(p)/8).  For
         other groups, this length is specified by the group.</t>
         <t>Produce an octet string of the above length with PRF+(K,
-        "SPAKEsecret"), where K is the long-term key and PRF+ is defined in
-        <xref target="RFC6113"/> section 5.1.</t>
+        "SPAKEsecret"), where K is the initial reply key and PRF+ is defined
+        in <xref target="RFC6113"/> section 5.1.</t>
         <t>If the chosen group is secp521r1, set the high seven bits of the
         first byte to 0 so that there are at most 521 significant bits in the
         octet string.</t>
@@ -447,16 +464,16 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
     <section title="Transcript Checksum" anchor="tcksum">
       <t>The transcript checksum is an octet string of length equal to the
       output length of the required checksum type of the encryption type of
-      the client principal's long-term key (see <xref target="RFC3961"/>
-      section 3). It initially contains all zero values.</t>
+      the initial reply key (see <xref target="RFC3961"/> section 3). It
+      initially contains all zero values.</t>
 
       <t>When the transcript checksum is updated with an octet string
       input, the new value is the checksum (as defined by the <xref
       target="RFC3961"/> section 4 get-mic operation) computed over
       the concatenation of the old value and the input.  The checksum
-      is computed using the client principal's long-term key, the
-      required checksum type for that key's encryption type, and the
-      key usage number KEY_USAGE_SPAKE_TRANSCRIPT.</t>
+      is computed using the initial reply key, the required checksum type for
+      that key's encryption type, and the key usage number
+      KEY_USAGE_SPAKE_TRANSCRIPT.</t>
 
       <t>In the normal message flow or with the second optimization described
       in <xref target="optimizations"/>, the transcript checksum is first
@@ -499,12 +516,14 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
         <t>The SPAKE result K, converted to an octet string as specified in
         <xref target="spakeparams"/>.</t>
         <t>The transcript checksum.</t>
-        <t>The KDC-REQ-BODY encoding for this request.</t>
+        <t>The KDC-REQ-BODY encoding for the request being sent or responded
+        to. Within a FAST channel, the inner KDC-REQ-BODY encoding MUST be
+        used.</t>
         <t>The value n as a big-endian four-byte unsigned binary number.</t>
       </list>
-      The derived key K'[n] has the same encryption type as the client
-      long-term key, and has value random-to-key(PRF+(clientkey,
-      inputstring)). PRF+ is defined in <xref target="RFC6113"/> section
+      The derived key K'[n] has the same encryption type as the initial reply
+      key, and has the value random-to-key(PRF+(initial-reply-key,
+      input-string)). PRF+ is defined in <xref target="RFC6113"/> section
       5.1.</t>
     </section>
 
@@ -536,17 +555,22 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       <t>All of the security considerations from
       <xref target="I-D.irtf-cfrg-spake2">SPAKE</xref> apply here as well.</t>
 
-      <t>Message integrity is provided by the transcript hash being integrated
-      into the final reply key and second factor encryption keys. Downgrade
-      attacks on SPAKESupport and SPAKEChallenge will result in the client and
-      KDC deriving different reply keys and EncryptedData keys.</t>
+      <t>This mechanism includes unauthenticated plaintext in the SPAKESupport
+      and SPAKEChallenge messages. Beginning with the third pass, the
+      integrity of this plaintext is ensured by incorporating the transcript
+      checksum into the derivation of the final reply key and second factor
+      encryption keys. Downgrade attacks on SPAKESupport and SPAKEChallenge
+      will result in the client and KDC deriving different reply keys and
+      EncryptedData keys. The KDC-REQ-BODY contents are also incorporated into
+      key derivation, ensuring their integrity. The unauthenticated plaintext
+      in the KDC-REP message is not protected by this mechanism.</t>
 
       <t>Unless FAST is used, the factors field of a SPAKEChallenge message is
-      not integrity-protected. Second factor types MUST account for this when
-      specifying the semantics of the data field. Second factor data in the
-      SPAKEChallenge should not be included in user prompts, as it could be
-      modified by an attacker to contain misleading or offensive
-      information.</t>
+      not integrity-protected until the SPAKEResponse is verified. Second
+      factor types MUST account for this when specifying the semantics of the
+      data field. Second factor data in the SPAKEChallenge should not be
+      included in user prompts, as it could be modified by an attacker to
+      contain misleading or offensive information.</t>
 
       <t>Subsequent factor data, including the data in the SPAKEResponse, are
       encrypted in a derivative of the session key. Therefore, it is not
@@ -591,7 +615,10 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       realm's KDCs. Cookie values may be replayed by attackers. The KDC SHOULD
       limit the time window of replays using a timestamp, and SHOULD prevent
       cookie values from being applied to other pre-authentication mechanisms
-      or other client principals.</t>
+      or other client principals. Within the validity period of a cookie, an
+      attacker can replay the final message of a pre-authentication exchange
+      to any of the realm's KDCs and make it appear that the client has
+      authenticated.</t>
 
       <t>Any side channels in the creation of the shared secret input w, or in
       the multiplications wM and wN, could allow an attacker to recover the
@@ -640,6 +667,12 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       string-to-key functions may increase the cost of such an attack, the
       resulting cost will likely not be higher than the cost of solving the
       group discrete logarithm.</t>
+
+      <t>This mechanism does not directly provide the KDC Authentication
+      facility (<xref target="RFC6113"/> section 3.4) because it does not send
+      a key confirmation from the KDC to the client. When used as a
+      stand-alone mechanism, the traditional KDC authentication provided by
+      the KDC-REP enc-part still applies.</t>
     </section>
 
     <section title="Assigned Constants">
