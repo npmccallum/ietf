@@ -77,25 +77,25 @@
           <t>Each side of the exchange contributes entropy.</t>
           <t>Passive attackers cannot determine the shared key.</t>
           <t>Active attackers cannot perform a man-in-the-middle attack.</t>
-          <t>Either side can store a password or password equivilent.</t>
+          <t>Either side can store a password or password equivalent.</t>
         </list></t>
 
         <t>These properties of PAKE allow us to establish high-entropy
-        encryption keys resistent to offline brute force attack, even when
-        weak passwords are used.</t>
+        encryption keys resistant to offline brute force attack, even when
+        the passwords used are weak (low-entropy).</t>
       </section>
 
       <section title="Which PAKE?">
         <t>Diffie-Hellman Encrypted Key Exchange (DH-EKE) is the earliest
         widely deployed PAKE. It works by encrypting the public keys of a
-        Diffie-Hellman key exchange using the shared secret. However, it
+        Diffie-Hellman key exchange with a shared secret. However, it
         requires both that unauthenticated encryption be used and that the
-        public keys be indistinguishable from random data. This data format
-        requirement makes it impossible to use with elliptic curve
+        public keys be indistinguishable from random data. This requirement
+        makes it impossible to use this form of PAKE with elliptic curve
         cryptography. For these reasons, DH-EKE is not a good fit.</t>
 
         <t>Password authenticated key exchange by juggling (JPAKE) permits
-        the use of elliptic curve cryptography. However, it too has drawbacks.
+        the use of elliptic curve cryptography. However, it has drawbacks.
         First, the additional computation required for the algorithm makes
         it resource intensive for servers under load. Second, it requires an
         additional network round-trip, increasing latency and load on the
