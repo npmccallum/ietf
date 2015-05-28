@@ -46,15 +46,15 @@
     <workgroup>Internet Engineering Task Force</workgroup>
 
     <abstract>
-      <t>This document defines a new pre-authentication mechanism for performing
-      Kerberos authentication using password authenticated key exchange. This
-      mechanism has three goals. First, it increases the security of the
-      Kerberos pre-authentication exchange by making offline brute-force attacks
-      impossible. Second, it enables the use of secure second factor
-      authentication without FAST by utilizing the existing trust relationship
-      established by the shared first factor. Third, it makes Kerberos
-      pre-authentication more resilient against time synchronization errors by
-      removing the need to transfer an encrypted timestamp.
+      <t>This document defines a new pre-authentication mechanism for the Kerberos
+      protocol that uses a password authenticated key exchange. This document has
+      three goals. First, increase the security of Kerberos pre-authentication
+      exchanges by making offline brute-force attacks impossible.
+      Second, enable the use of secure second factor authentication without relying
+      on FAST. This is achived using the existing trust relationship established
+      by the shared first factor. Third, make Kerberos pre-authentication more
+      resilient against time synchronization errors by removing the need to transfer
+      an encrypted timestamp from the client.
       </t>
     </abstract>
   </front>
