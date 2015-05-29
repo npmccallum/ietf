@@ -124,21 +124,22 @@
         that PAKE solves for first factor authentication. So a similar
         technique can be used with PAKE to encrypt second-factor data.</t>
 
-        <t>In OTP pre-authentication <xref target="RFC6560"/>, this problem
-        has been mitigated by FAST <xref target="RFC6113"/>, which uses a
-        secondary trust relationship to create a secure encryption channel
-        within which pre-authentication data can be sent. However, the
+        <t>In the OTP pre-authentication <xref target="RFC6560"/> standard,
+        this problem has been mitigated by using FAST <xref target="RFC6113"/>,
+        which uses a secondary trust relationship to create a secure encryption
+        channel within which pre-authentication data can be sent. However, the
         requirement for a secondary trust relationship has proven to be
         cumbersome to deploy and often introduces third parties into the trust
         chain (such as certification authorities). These requirements lead to
         a scenario where FAST cannot be enabled by default without sufficient
-        configuration. However, by deriving existing key data using the
-        entropy from the PAKE, the resulting encryption key can be used to
-        securely encrypt 2FA plaintext data without the need for a secondary
-        trust relationship. Further, if the first and second factor verifiers
-        are sent at the same time and the KDC is careful to prevent timing
-        attacks then an online brute-force attacker cannot attack each factor
-        separately.</t>
+        configuration. SPAKE pre-authentication, instead, can create a secure
+        encryption channel implicitly, using the key exchange to negotiate
+        a high-entropy encryption key. This key can then be used to securely
+        encrypt 2FA plaintext data without the need for a secondary trust
+        relationship. Further, if the secondary factors verifiers are sent at
+        the same time as the first factor verifier, and the KDC is careful to
+        prevent timing attacks, then an online brute-force attack cannot be
+        used to attack the factors separately.</t>
 
         <t>For these reasons, this draft departs from the advice given in
         Section 1 of <xref target="RFC6113">RFC 6113</xref> which states that
