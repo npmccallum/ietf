@@ -61,13 +61,13 @@
 
   <middle>
     <section title="Introduction">
-      <t>The most widely deployed Kerberos pre-authentication method, <xref
-      target="RFC4120"/> section 5.2.7.2, encrypts a timestamp in the client
-      principal's long-term secret. When a client uses this method, a passive
-      attacker can perform an offline brute-force attack against the
-      transferred ciphertext. When the client principal's long-term key is
-      based on a password, especially a weak password, offline dictionary
-      attacks can successfully recover the key.</t>
+      <t>The most widely deployed Kerberos pre-authentication method,
+      PA-ENC-TIMESTAMP, encrypts a timestamp in the client principal's
+      long-term secret. When a client uses this method, a passive attacker can
+      perform an offline brute-force attack against the transferred
+      ciphertext. When the client principal's long-term key is based on a
+      password, especially a weak password, offline dictionary attacks can
+      successfully recover the key.</t>
 
       <section title="Properties of PAKE">
         <t>Password authenticated key exchange (PAKE) algorithms provide
@@ -101,15 +101,14 @@
         additional network round-trip, increasing latency and load on the
         network.</t>
 
-        <t><xref target="I-D.irtf-cfrg-spake2">SPAKE</xref> is a variant of
-        the technique used by DH-EKE which ensures that all public key
-        encryption and decryption operations result in a member of the
-        underlying group. This property allows SPAKE to be used with elliptic
-        curve cryptography, permitting the use of markedly smaller key sizes
-        with equivalent security to a finite-field Diffie-Hellman key
-        exchange. Additionally, SPAKE can complete the key exchange in just a
-        single round-trip. These properties make SPAKE an ideal PAKE to use
-        for Kerberos pre-authentication.</t>
+        <t>SPAKE is a variant of the technique used by DH-EKE which ensures
+        that all public key encryption and decryption operations result in a
+        member of the underlying group. This property allows SPAKE to be used
+        with elliptic curve cryptography, permitting the use of markedly
+        smaller key sizes with equivalent security to a finite-field
+        Diffie-Hellman key exchange. Additionally, SPAKE can complete the key
+        exchange in just a single round-trip. These properties make SPAKE an
+        ideal PAKE to use for Kerberos pre-authentication.</t>
       </section>
 
       <section title="PAKE and Two-Factor Authentication">
@@ -125,13 +124,13 @@
         technique can be used with PAKE to encrypt second-factor data.</t>
 
         <t>In the OTP pre-authentication <xref target="RFC6560"/> standard,
-        this problem has been mitigated by using FAST <xref target="RFC6113"/>,
-        which uses a secondary trust relationship to create a secure encryption
-        channel within which pre-authentication data can be sent. However, the
-        requirement for a secondary trust relationship has proven to be
-        cumbersome to deploy and often introduces third parties into the trust
-        chain (such as certification authorities). These requirements lead to
-        a scenario where FAST cannot be enabled by default without sufficient
+        this problem has been mitigated by using FAST, which uses a secondary
+        trust relationship to create a secure encryption channel within which
+        pre-authentication data can be sent. However, the requirement for a
+        secondary trust relationship has proven to be cumbersome to deploy and
+        often introduces third parties into the trust chain (such as
+        certification authorities). These requirements lead to a scenario
+        where FAST cannot be enabled by default without sufficient
         configuration. SPAKE pre-authentication, instead, can create a secure
         encryption channel implicitly, using the key exchange to negotiate
         a high-entropy encryption key. This key can then be used to securely
@@ -151,8 +150,8 @@
       </section>
 
       <section title="SPAKE Overview">
-        <t>The <xref target="I-D.irtf-cfrg-spake2">SPAKE</xref> algorithm can
-        be broadly described in a series of four steps:
+        <t>The SPAKE algorithm can be broadly described in a series of four
+        steps:
         <list style="numbers">
           <t>Calculation and exchange of the public key</t>
           <t>Calculation of the shared secret (K)</t>
@@ -176,8 +175,21 @@
     <section title="Document Conventions">
       <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
       "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
-      document are to be interpreted as described in <xref target="RFC2119">
-      RFC 2119</xref>.</t>
+      document are to be interpreted as described in <xref
+      target="RFC2119"/>.</t>
+      <t>This document refers to numerous terms and protocol messages defined
+      in <xref target="RFC4120"/>.</t>
+      <t>The terms "encryption type", "required checksum mechanism", and
+      "get_mic" are defined in <xref target="RFC3961"/>.</t>
+      <t>The terms "FAST", "PA-FX-COOKIE", "KDC_ERR_PREAUTH_EXPIRED",
+      "KDC_ERR_MORE_PREAUTH_DATA_REQUIRED", "pre-authentication facility", and
+      "authentication set" are defined in <xref target="RFC6113"/>.</t>
+      <t>The <xref target="SPAKE"/> paper defines SPAKE as a family of two key
+      exchange algorithms differing only in derivation of the final key. This
+      mechanism uses a derivation similar to the second algorithm (SPAKE2)
+      with differences in detail. For simplicity, this document refers to the
+      algorithm as "SPAKE". The normative reference for this algorithm is
+      <xref target="I-D.irtf-cfrg-spake2"/>.</t>
     </section>
 
     <section title="Prerequisites">
@@ -193,14 +205,13 @@
         <t>KDCs which implement SPAKE pre-authentication MUST have some secure
         mechanism for retaining state between AS-REQs. For stateless KDC
         implementations, this method will most commonly be an encrypted
-        PA-FX-COOKIE as defined in <xref target="RFC6113"/> section 5.2. Clients
-        which implement SPAKE pre-authentication MUST support PA-FX-COOKIE.</t>
+        PA-FX-COOKIE. Clients which implement SPAKE pre-authentication MUST
+        support PA-FX-COOKIE.</t>
       </section>
 
       <section title="More Pre-Authentication Data Required">
         <t>Both KDCs and clients which implement SPAKE pre-authentication MUST
-        support the use of KDC_ERR_MORE_PREAUTH_DATA_REQUIRED as defined in
-        <xref target="RFC6113"/> section 5.2.</t>
+        support the use of KDC_ERR_MORE_PREAUTH_DATA_REQUIRED.</t>
       </section>
 
       <section title="Group Support">
@@ -220,16 +231,14 @@
     </section>
 
     <section title="SPAKE Pre-Authentication Message Protocol">
-      <t>The SPAKE pre-authentication mechanism uses the reply key, and
-      provides the Client Authentication and Strengthening Reply Key
-      facilities described in <xref target="RFC6113"/> section 3. When the
-      mechanism completes successfully, the client will have proved knowledge
-      of the original reply key and possibly a second factor, and the reply
-      key will be strengthened to a more uniform distribution based on the
-      PAKE exchange. This mechanism also ensures the integrity of the
-      KDC-REQ-BODY contents. This mechanism can be used in an authentication
-      set (<xref target="RFC6113"/> section 5.3); no pa-hint value is required
-      or defined.</t>
+      <t>This mechanism uses the reply key, and provides the Client
+      Authentication and Strengthening Reply Key pre-authentication
+      facilities. When the mechanism completes successfully, the client will
+      have proved knowledge of the original reply key and possibly a second
+      factor, and the reply key will be strengthened to a more uniform
+      distribution based on the PAKE exchange. This mechanism also ensures the
+      integrity of the KDC-REQ-BODY contents. This mechanism can be used in an
+      authentication set; no pa-hint value is required or defined.</t>
 
       <t>This section will describe the flow of messages when performing SPAKE
       pre-authentication. We will begin by explaining the most verbose version
@@ -471,16 +480,13 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
     <section title="Transcript Checksum" anchor="tcksum">
       <t>The transcript checksum is an octet string of length equal to the
       output length of the required checksum type of the encryption type of
-      the initial reply key (see <xref target="RFC3961"/> section 3). It
-      initially contains all zero values.</t>
+      the initial reply key. It initially contains all zero values.</t>
 
-      <t>When the transcript checksum is updated with an octet string
-      input, the new value is the checksum (as defined by the <xref
-      target="RFC3961"/> section 4 get-mic operation) computed over
-      the concatenation of the old value and the input.  The checksum
-      is computed using the initial reply key, the required checksum type for
-      that key's encryption type, and the key usage number
-      KEY_USAGE_SPAKE_TRANSCRIPT.</t>
+      <t>When the transcript checksum is updated with an octet string input,
+      the new value is the get_mic result computed over the concatenation of
+      the old value and the input, for the required checksum type of the
+      initial reply key's encryption type, using the initial reply key and the
+      key usage number KEY_USAGE_SPAKE_TRANSCRIPT.</t>
 
       <t>In the normal message flow or with the second optimization described
       in <xref target="optimizations"/>, the transcript checksum is first
@@ -675,10 +681,10 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       group discrete logarithm.</t>
 
       <t>This mechanism does not directly provide the KDC Authentication
-      facility (<xref target="RFC6113"/> section 3.4) because it does not send
-      a key confirmation from the KDC to the client. When used as a
-      stand-alone mechanism, the traditional KDC authentication provided by
-      the KDC-REP enc-part still applies.</t>
+      pre-authentication facility, because it does not send a key confirmation
+      from the KDC to the client. When used as a stand-alone mechanism, the
+      traditional KDC authentication provided by the KDC-REP enc-part still
+      applies.</t>
     </section>
 
     <section title="Assigned Constants">
@@ -729,6 +735,14 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
     </references>
     <references title='Non-normative References'>
       &rfc6560;
+      <reference anchor="SPAKE">
+        <front>
+          <title>Simple Password-Based Encrypted Key Exchange Protocols</title>
+          <author surname="Abdalla" initials="M." />
+          <author surname="Pointcheval" initials="D. " />
+          <date month="February" year="2005" />
+        </front>
+      </reference>
     </references>
 <?rfc rfcedstyle="yes"?>
 
