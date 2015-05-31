@@ -6,6 +6,7 @@
 <!ENTITY rfc6113 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6113.xml">
 <!ENTITY rfc4120 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.4120.xml">
 <!ENTITY rfc6560 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6560.xml">
+<!ENTITY rfc6649 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6649.xml">
 <!ENTITY spake SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-irtf-cfrg-spake2-01.xml">
 ]>
 <?xml-stylesheet type="text/xsl" href="rfc2629.xslt"?>
@@ -588,26 +589,23 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       property of indistinguishability, meaning that an attacker who guesses a
       long-term key and a second factor value cannot determine whether one of
       the factors was correct unless both are correct. Indistinguishability is
-      only maintained if the second factor can be validated solely based on the
-      data in the SPAKEResponse; the use of additional round trips will reveal
-      to the attacker whether the long-term key is correct.
+      only maintained if the second factor can be validated solely based on
+      the data in the SPAKEResponse; the use of additional round trips will
+      reveal to the attacker whether the long-term key is correct.
       Indistinguishability also requires that there are no side channels. When
       processing a SPAKEResponse message, whether or not the KDC successfully
-      decrypts the factor field, it must reply with the same error fields, take
-      the same amount of time, and make the same observable communications to
-      other servers.</t>
+      decrypts the factor field, it must reply with the same error fields,
+      take the same amount of time, and make the same observable
+      communications to other servers. Indistinguishability applies only to an
+      attacker communicating with the KDC; an attacker posing as the KDC will
+      be able to tell from the client's SPAKEResponse message whether its
+      guess for the long-term key is correct.</t>
 
-      <t>Given that each EncryptedData will begin a new encryption context,
-      a failure to properly derive the encryption keys will result in a
-      situation where the risk of compromise is non-negligible.</t>
-
-      <t>Weak checksums present a risk to the transcript hash. Any etype with
-      a checksum based on one of the following algorithms MUST NOT be used:
-      <list style="symbols">
-        <t>CRC32</t>
-        <t>MD4</t>
-        <t>MD5</t>
-      </list></t>
+      <t>This mechanism is dependent on the algorithmic security of the
+      initial reply key's encryption type and its required checksum type. Use
+      of weak encryption types (such as des-cbc-crc, deprecated by <xref
+      target="RFC6649"/>) may result in a reply key which can be recovered by
+      an attacker.</t>
 
       <t>Both the size of the EncryptedData and the number of EncryptedData
       messages may reveal information about the second factor used in an
@@ -625,6 +623,11 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       attacker can replay the final message of a pre-authentication exchange
       to any of the realm's KDCs and make it appear that the client has
       authenticated.</t>
+
+      <t>Because the SPAKEResponse factor field and each subsequent
+      EncryptedData message are encrypted using distinct derivatives of the
+      shared secret K, an attacker cannot reflect second-factor messages or
+      apply them to the wrong step of a pre-authentication exchange.</t>
 
       <t>Any side channels in the creation of the shared secret input w, or in
       the multiplications wM and wN, could allow an attacker to recover the
@@ -656,7 +659,11 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       long-term key, this pre-authentication mechanism does not prevent online
       password guessing attacks. The KDC is made aware of unsuccessful
       guesses, and can apply facilities such as password lockout to mitigate
-      the risk of online attacks.</t>
+      the risk of online attacks. An online guessing attack could also be
+      conducted against a client by posing as the KDC, perhaps using
+      KDC_ERR_PREAUTH_EXPIRED errors to induce the client to retry. Client
+      implementations SHOULD impose a maximum limit on the number of
+      retries.</t>
 
       <t>Elliptic curve group operations are more computationally expensive
       than secret-key operations. As a result, the use of this mechanism may
@@ -729,6 +736,7 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
     </references>
     <references title='Non-normative References'>
       &rfc6560;
+      &rfc6649;
     </references>
 <?rfc rfcedstyle="yes"?>
 
