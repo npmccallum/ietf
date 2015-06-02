@@ -463,9 +463,9 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
       </list></t>
       <t>The KDC chooses a secret scalar value x and the client chooses a
       secret scalar value y. As required by the SPAKE algorithm, these values
-      are chosen randomly and uniformly. The KDC and client MAY reuse x or y
-      values across multiple pre-authentication operations using the same
-      group.</t>
+      are chosen randomly and uniformly. The KDC and client MUST NOT reuse x
+      or y values for authentications involving different initial reply
+      keys.</t>
       <t>The SPAKE algorithm requires constants M and N for each
       group.  These constants MUST be taken from <xref
       target="I-D.irtf-cfrg-spake2"/> section 3 or computed using the
@@ -639,6 +639,11 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       values x and y need not take constant time, but the amount of time taken
       MUST NOT provide information about the resulting value.</t>
 
+      <t>If an x or y value is reused for pre-authentications involving two
+      different client long-term keys, an attacker who observes both
+      authentications and knows one of the long-term keys can conduct an
+      offline dictionary attack to recover the other one.</t>
+
       <t>This pre-authentication mechanism is not designed to provide forward
       secrecy. Nevertheless, some measure of forward secrecy may result
       depending on implementation choices. A passive attacker who determines
@@ -647,9 +652,9 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       determines the PA-FX-COOKIE encryption key (if the KDC uses an encrypted
       cookie) will be able to recover the ticket session key. The KDC can
       mitigate this risk by periodically rotating the cookie encryption
-      key. If the KDC or client retains the x or y value for reuse, an
-      attacker who recovers the x or y value and the client long-term key will
-      be able to recover the ticket session key.</t>
+      key. If the KDC or client retains the x or y value for reuse with the
+      same client long-term key, an attacker who recovers the x or y value and
+      the long-term key will be able to recover the ticket session key.</t>
 
       <t>Although this pre-authentication mechanism is designed to prevent an
       offline dictionary attack by an active attacker posing as the KDC, such
