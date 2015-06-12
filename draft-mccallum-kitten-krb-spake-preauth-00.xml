@@ -90,12 +90,12 @@
         widely deployed PAKE. It works by encrypting the public keys of a
         Diffie-Hellman key exchange with a shared secret. However, it
         requires both that unauthenticated encryption be used and that the
-        public keys be indistinguishable from random data. This requirement
-        makes it impossible to use this form of PAKE with elliptic curve
-        cryptography. For these reasons, DH-EKE is not a good fit.</t>
+        public keys be indistinguishable from random data. This last
+        requirement makes it impossible to use this form of PAKE with elliptic
+        curve cryptography. For these reasons, DH-EKE is not a good fit.</t>
 
         <t>Password authenticated key exchange by juggling (JPAKE) permits
-        the use of elliptic curve cryptography. However, it has drawbacks.
+        the use of elliptic curve cryptography. However, it too has drawbacks.
         First, the additional computation required for the algorithm makes
         it resource intensive for servers under load. Second, it requires an
         additional network round-trip, increasing latency and load on the
@@ -135,8 +135,8 @@
         encryption channel implicitly, using the key exchange to negotiate
         a high-entropy encryption key. This key can then be used to securely
         encrypt 2FA plaintext data without the need for a secondary trust
-        relationship. Further, if the secondary factors verifiers are sent at
-        the same time as the first factor verifier, and the KDC is careful to
+        relationship. Further, if the second factor verifiers are sent at the
+        same time as the first factor verifier, and the KDC is careful to
         prevent timing attacks, then an online brute-force attack cannot be
         used to attack the factors separately.</t>
 
@@ -231,7 +231,7 @@
     </section>
 
     <section title="SPAKE Pre-Authentication Message Protocol">
-      <t>This mechanism uses the reply key, and provides the Client
+      <t>This mechanism uses the reply key and provides the Client
       Authentication and Strengthening Reply Key pre-authentication
       facilities. When the mechanism completes successfully, the client will
       have proved knowledge of the original reply key and possibly a second
@@ -356,11 +356,13 @@ SPAKEResponse ::= SEQUENCE {
 ]]></artwork>
         </figure>
 
+        <t>The client and KDC update the transcript checksum with the pubkey
+        value, and use the resulting checksum for all encryption key
+        derivations.</t>
+
         <t>The pubkey field indicates the client's public key generated using
         the N constant in the SPAKE algorithm, with inputs and conversions as
-        specified in <xref target="spakeparams"/>.  The client and KDC update
-        the transcript checksum with the pubkey value, and use the resulting
-        checksum for all encryption key derivations.</t>
+        specified in <xref target="spakeparams"/>.</t>
 
         <t>The factor field indicates the client's chosen second factor data.
         The key for this field is K'[1] as specified in <xref
