@@ -49,7 +49,7 @@
       <t>This document defines a new pre-authentication mechanism for the Kerberos
       protocol that uses a password authenticated key exchange. This document has
       three goals. First, increase the security of Kerberos pre-authentication
-      exchanges by making offline brute-force attacks impossible.
+      exchanges by making offline brute-force attacks infeasible.
       Second, enable the use of secure second factor authentication without relying
       on FAST. This is achived using the existing trust relationship established
       by the shared first factor. Third, make Kerberos pre-authentication more
@@ -124,7 +124,7 @@
         that PAKE solves for first factor authentication. So a similar
         technique can be used with PAKE to encrypt second-factor data.</t>
 
-        <t>In the OTP pre-authentication <xref target="RFC6560"/> standard,
+        <t>In the OTP pre-authentication <xref target="RFC6560"/> specification,
         this problem has been mitigated by using FAST <xref target="RFC6113"/>,
         which uses a secondary trust relationship to create a secure encryption
         channel within which pre-authentication data can be sent. However, the
