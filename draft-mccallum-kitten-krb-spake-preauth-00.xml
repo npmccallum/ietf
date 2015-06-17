@@ -7,6 +7,8 @@
 <!ENTITY rfc4120 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.4120.xml">
 <!ENTITY rfc6560 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6560.xml">
 <!ENTITY spake SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-irtf-cfrg-spake2-01.xml">
+<!ENTITY CCITT.X680.2002 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml2/reference.CCITT.X680.2002.xml">
+<!ENTITY CCITT.X690.2002 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml2/reference.CCITT.X690.2002.xml">
 ]>
 <?xml-stylesheet type="text/xsl" href="rfc2629.xslt"?>
 
@@ -190,6 +192,8 @@
       with differences in detail. For simplicity, this document refers to the
       algorithm as "SPAKE". The normative reference for this algorithm is
       <xref target="I-D.irtf-cfrg-spake2"/>.</t>
+      <t>The terms "ASN.1" and "DER" are defined in <xref
+      target="CCITT.X680.2002"/> and <xref target="CCITT.X690.2002"/>.</t>
     </section>
 
     <section title="Prerequisites">
@@ -245,30 +249,45 @@
       of the protocol which all implementations MUST support. Then we will
       describe several optional optimizations to reduce round-trips.</t>
 
-      <t>All messages will use the following pre-authentication type:
+      <t>Mechanism messages are communicated using PA-DATA elements within the
+      padata field of KDC-REQ messages or within the METHOD-DATA in the e-data
+      field of KRB-ERROR messages. All PA-DATA elements for this mechanism
+      MUST use the following padata-type:
       <list style="hanging">
         <t hangText="PA-SPAKE">TBD</t>
-      </list></t>
+      </list>
+      The padata-value for all PA-SPAKE PA-DATA values MUST be empty or
+      contain a DER encoding for the ASN.1 type PA-SPAKE.</t>
+
+      <figure>
+        <artwork><![CDATA[
+PA-SPAKE ::= CHOICE {
+    support     [0] SPAKESupport,
+    challenge   [1] SPAKEChallenge,
+    response    [2] SPAKEResponse,
+    encdata     [3] EncryptedData,
+    ...
+}
+]]></artwork>
+      </figure>
 
       <section title="First Pass">
         <t>The SPAKE pre-authentication exchange begins when the client sends
         an initial authentication service request (AS-REQ) without
         pre-authentication data. Upon receipt of this AS-REQ, a KDC which
-        requires pre-authentication and supports SPAKE SHOULD reply with
-        a KDC_ERR_PREAUTH_REQUIRED error, with METHOD-DATA containing a PA-DATA
-        element of padata-type PA-SPAKE and an empty padata-value. This
-        indicates to the client that the KDC supports SPAKE
-        pre-authentication.</t>
+        requires pre-authentication and supports SPAKE SHOULD reply with a
+        KDC_ERR_PREAUTH_REQUIRED error, with METHOD-DATA containing an empty
+        PA-SPAKE PA-DATA element. This message indicates to the client that
+        the KDC supports SPAKE pre-authentication.</t>
       </section>
 
       <section title="Second Pass">
         <t>Once the client knows that the KDC supports SPAKE pre-authentication
-        and the client desires to use it, the client will generate a new AS-REQ
-        which includes a PA-DATA element of padata-type PA-SPAKE, whose
-        padata-value contains a DER-encoded SPAKESupport message. This message
-        indicates to the KDC which groups the client prefers for the SPAKE
-        operation. The groups sequence is ordered from the most preferred group
-        to the least preferred group.</t>
+        and the client desires to use it, the client will generate a new
+        AS-REQ message containing a PA-SPAKE PA-DATA element using the support
+        choice. This message indicates to the KDC which groups the client
+        prefers for the SPAKE operation. The groups sequence is ordered from
+        the most preferred group to the least preferred group.</t>
 
         <figure>
           <artwork><![CDATA[
@@ -280,20 +299,19 @@ SPAKESupport ::= SEQUENCE {
         </figure>
 
         <t>The client and KDC initialize a transcript checksum (<xref
-        target="tcksum"/>) and update it with the encoded SPAKESupport
+        target="tcksum"/>) and update it with the DER-encoded PA-SPAKE
         message.</t>
 
-        <t>Upon receipt of the SPAKESupport message, the KDC will select a
+        <t>Upon receipt of the support message, the KDC will select a
         group. The KDC SHOULD choose a group from the groups provided by the
-        SPAKESupport message. However, if the SPAKESupport message does not
-        contain any group that is supported by the KDC, the KDC MAY select
-        another group in hopes that the client might support it.</t>
+        support message. However, if the support message does not contain any
+        group that is supported by the KDC, the KDC MAY select another group
+        in hopes that the client might support it.</t>
 
         <t>Once the KDC has selected a group, the KDC will reply to the client
-        with a KDC_ERR_MORE_PREAUTH_DATA_REQUIRED error containing a PA-DATA
-        element of type PA-SPAKE, whose padata-value contains a DER-encoded
-        SPAKEChallenge message.  The client and KDC update the transcript
-        checksum with the encoded message.</t>
+        with a KDC_ERR_MORE_PREAUTH_DATA_REQUIRED error containing a PA-SPAKE
+        PA-DATA element using the challenge choice. The client and KDC update
+        the transcript checksum with the DER-encoded PA-SPAKE message.</t>
 
         <figure>
           <artwork><![CDATA[
@@ -335,16 +353,14 @@ SPAKESecondFactor ::= SEQUENCE {
       </section>
 
       <section title="Third Pass">
-        <t>Upon receipt of the SPAKEChallenge message, the client will
-        complete its part of of the SPAKE process, resulting in the shared
-        secret K.</t>
+        <t>Upon receipt of the challenge message, the client will complete its
+        part of of the SPAKE process, resulting in the shared secret K.</t>
 
         <t>Next, the client chooses one of the second factor types listed in the
-        challenge field of the SPAKEChallenge message and gathers whatever data
+        factors field of the challenge message and gathers whatever data
         is required for this second factor type; possibly using the challenge
         data for this second factor type. Finally, the client sends an AS-REQ
-        containing a PA-DATA element of type PA-SPAKE, whose padata-value
-        contains a DER-encoded SPAKEResponse message.</t>
+        containing a PA-SPAKE PA-DATA element using the response choice.</t>
 
         <figure>
           <artwork><![CDATA[
@@ -372,26 +388,25 @@ SPAKEResponse ::= SEQUENCE {
         contains the type of the second factor and any optional data used. The
         contents of the data field will depend on the second factor type
         chosen. The client MUST NOT send a response containing a second factor
-        type which was not listed in the factors field of the SPAKEChallenge
+        type which was not listed in the factors field of the challenge
         message.</t>
 
-        <t>When the KDC receives the SPAKEResponse message from the client, it
-        will use the pubkey to compute the SPAKE result, derive K'[1], and
-        decrypt the factors field. If decryption is successful, the first
-        factor is successfully validated. The KDC then validates the second
-        factor. If either factor fails to validate, the KDC responds with an
-        appropriate KRB-ERROR message.</t>
+        <t>When the KDC receives the response message from the client, it will
+        use the pubkey to compute the SPAKE result, derive K'[1], and decrypt
+        the factors field. If decryption is successful, the first factor is
+        successfully validated. The KDC then validates the second factor. If
+        either factor fails to validate, the KDC responds with an appropriate
+        KRB-ERROR message.</t>
 
         <t>If validation of the second factor requires further round-trips, the
         KDC MUST reply to the client with KDC_ERR_MORE_PREAUTH_DATA_REQUIRED
-        containing a PA-DATA element of type PA-SPAKE, whose padata-value
-        contains a DER-encoded EncryptedData message. The key for this message
-        is K'[2] as specified in <xref target="keyderiv"/>, and the key usage
-        number is KEY_USAGE_SPAKE_FACTOR. The plain text of this message
-        contains a DER-encoded SPAKESecondFactor message. As before, the type
-        field of this message will contain the second factor type, and the
-        data field will optionally contain second factor type specific
-        data.</t>
+        containing a PA-SPAKE PA-DATA element using the encdata choice. The
+        key for the EncryptedData value is K'[2] as specified in <xref
+        target="keyderiv"/>, and the key usage number is
+        KEY_USAGE_SPAKE_FACTOR. The plain text of this message contains a
+        DER-encoded SPAKESecondFactor message. As before, the type field of
+        this message will contain the second factor type, and the data field
+        will optionally contain second factor type specific data.</t>
 
         <figure>
           <artwork><![CDATA[
@@ -401,17 +416,18 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
       </section>
 
       <section title="Subsequent Passes">
-        <t>Any number of EncryptedData message roundtrips may occur. The contents
-        of these round trips are specific to the second factor type. If a client
-        receives a PA-SPAKE PA-DATA element containing EncryptedData from the
-        KDC, it MUST reply with a subsequent AS-REQ with a PA-SPAKE PA-DATA
-        element containing EncryptedData, or abort the AS exchange.</t>
+        <t>Any number of additional round trips may occur using the encdata
+        choice. The contents of the plaintexts are specific to the second
+        factor type. If a client receives a PA-SPAKE PA-DATA element using the
+        encdata choice from the KDC, it MUST reply with a subsequent AS-REQ
+        with a PA-SPAKE PA-DATA using the encdata choice, or abort the AS
+        exchange.</t>
 
-        <t>The key for client-originated EncryptedData messages in subsequent
-        passes is K'[3] as specified in <xref target="keyderiv"/> for the
-        first subsequent pass, K'[5] for the second, and so on. The key for
-        KDC-originated EncryptedData messages is K'[4] for the first
-        subsequent pass, K'[6] for the second, and so on.</t>
+        <t>The key for client-originated encdata messages in subsequent passes
+        is K'[3] as specified in <xref target="keyderiv"/> for the first
+        subsequent pass, K'[5] for the second, and so on. The key for
+        KDC-originated encdata messages is K'[4] for the first subsequent
+        pass, K'[6] for the second, and so on.</t>
       </section>
 
       <section title="Reply Key Strengthening">
@@ -430,18 +446,20 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
         <t>The full protocol has two possible optimizations.</t>
 
         <t>First, the KDC MAY reply to the initial AS-REQ (containing no
-        pre-authentication data) with KDC_ERR_PREAUTH_REQUIRED and a PA-SPAKE
-        PA-DATA element containing a SPAKEChallenge message. In this case, the
-        KDC optimistically selects a group which the client may not support. If
-        the group chosen by the SPAKEChallenge message is supported by the
-        client, the client MUST skip to the third pass by issuing an AS-REQ with
-        a SPAKEResponse message. If the KDC's chosen group is not supported by
-        the client, the client MUST continue to the Second Pass as if it had
-        received an empty PA-SPAKE.  Clients MUST support this optimization.</t>
+        pre-authentication data) with a PA-SPAKE PA-DATA element using the
+        challenge choice, instead of an empty padata-value. In this case, the
+        KDC optimistically selects a group which the client may not
+        support. If the group chosen by the challenge message is supported by
+        the client, the client MUST skip to the third pass by issuing an
+        AS-REQ with a PA-SPAKE message using the response choice. If the KDC's
+        chosen group is not supported by the client, the client MUST
+        initialize and update the transcript hash with the KDC's challenge
+        message, and then continue to the second pass. Clients MUST support
+        this optimization.</t>
 
         <t>Second, clients MAY skip the first pass and send an AS-REQ with a
-        PA-SPAKE PA-DATA element containing a SPAKESupport message. KDCs MUST
-        support this optimization.</t>
+        PA-SPAKE PA-DATA element using the support choice. KDCs MUST support
+        this optimization.</t>
       </section>
     </section>
 
@@ -492,21 +510,21 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
 
       <t>In the normal message flow or with the second optimization described
       in <xref target="optimizations"/>, the transcript checksum is first
-      updated with the client's SPAKESupport message, then the KDC's
-      SPAKEChallenge message, and finally with the client's pubkey value. It
+      updated with the client's support message, then the KDC's
+      challenge message, and finally with the client's pubkey value. It
       therefore incorporates the client's supported groups, the KDC's chosen
       group, the KDC's initial second-factor messages, and the client and KDC
       public values.</t>
 
       <t>If the first optimization described in <xref target="optimizations"/>
       is used successfully, the transcript checksum is updated only with the
-      KDC's SPAKEChallenge message and the client's pubkey value.</t>
+      KDC's challenge message and the client's pubkey value.</t>
 
       <t>If first optimization is used unsuccessfully (i.e. the client does
       not accept the KDC's selected group), the transcript checksum is updated
-      with the KDC's optimistic SPAKEChallenge message, then with the client's
-      SPAKESupport message, then the KDC's second SPAKEChallenge message, and
-      finally with the client's pubkey value.</t>
+      with the KDC's optimistic challenge message, then with the client's
+      support message, then the KDC's second challenge message, and finally
+      with the client's pubkey value.</t>
 
       <figure>
         <artwork><![CDATA[
@@ -569,26 +587,26 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       <t>All of the security considerations from
       <xref target="I-D.irtf-cfrg-spake2">SPAKE</xref> apply here as well.</t>
 
-      <t>This mechanism includes unauthenticated plaintext in the SPAKESupport
-      and SPAKEChallenge messages. Beginning with the third pass, the
-      integrity of this plaintext is ensured by incorporating the transcript
-      checksum into the derivation of the final reply key and second factor
-      encryption keys. Downgrade attacks on SPAKESupport and SPAKEChallenge
-      will result in the client and KDC deriving different reply keys and
-      EncryptedData keys. The KDC-REQ-BODY contents are also incorporated into
-      key derivation, ensuring their integrity. The unauthenticated plaintext
-      in the KDC-REP message is not protected by this mechanism.</t>
+      <t>This mechanism includes unauthenticated plaintext in the support and
+      challenge messages. Beginning with the third pass, the integrity of this
+      plaintext is ensured by incorporating the transcript checksum into the
+      derivation of the final reply key and second factor encryption
+      keys. Downgrade attacks on support and challenge messages will result in
+      the client and KDC deriving different reply keys and EncryptedData
+      keys. The KDC-REQ-BODY contents are also incorporated into key
+      derivation, ensuring their integrity. The unauthenticated plaintext in
+      the KDC-REP message is not protected by this mechanism.</t>
 
-      <t>Unless FAST is used, the factors field of a SPAKEChallenge message is
-      not integrity-protected until the SPAKEResponse is verified. Second
-      factor types MUST account for this when specifying the semantics of the
-      data field. Second factor data in the SPAKEChallenge should not be
-      included in user prompts, as it could be modified by an attacker to
-      contain misleading or offensive information.</t>
+      <t>Unless FAST is used, the factors field of a challenge message is not
+      integrity-protected until the response is verified. Second factor types
+      MUST account for this when specifying the semantics of the data
+      field. Second factor data in the challenge should not be included in
+      user prompts, as it could be modified by an attacker to contain
+      misleading or offensive information.</t>
 
-      <t>Subsequent factor data, including the data in the SPAKEResponse, are
+      <t>Subsequent factor data, including the data in the response, are
       encrypted in a derivative of the shared secret K. Therefore, it is not
-      possible to exploit the untrustworthiness of SPAKEChallenge to turn the
+      possible to exploit the untrustworthiness of challenge to turn the
       client into an encryption or signing oracle, unless the attacker knows
       the client's long-term key.</t>
 
@@ -597,10 +615,10 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       long-term key and a second factor value cannot determine whether one of
       the factors was correct unless both are correct. Indistinguishability is
       only maintained if the second factor can be validated solely based on the
-      data in the SPAKEResponse; the use of additional round trips will reveal
+      data in the response; the use of additional round trips will reveal
       to the attacker whether the long-term key is correct.
       Indistinguishability also requires that there are no side channels. When
-      processing a SPAKEResponse message, whether or not the KDC successfully
+      processing a response message, whether or not the KDC successfully
       decrypts the factor field, it must reply with the same error fields, take
       the same amount of time, and make the same observable communications to
       other servers.</t>
@@ -723,6 +741,8 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
       &rfc4120;
       &rfc6113;
       &spake;
+      &CCITT.X680.2002;
+      &CCITT.X690.2002;
       <reference anchor='SEC1'>
         <front>
           <title>SEC 1: Elliptic Curve Cryptography</title>
@@ -788,6 +808,14 @@ SPAKESecondFactor ::= SEQUENCE {
 SPAKEResponse ::= SEQUENCE {
     pubkey      [0] OCTET STRING,
     factor      [1] EncryptedData, -- SPAKESecondFactor
+    ...
+}
+
+PA-SPAKE ::= CHOICE {
+    support     [0] SPAKESupport,
+    challenge   [1] SPAKEChallenge,
+    response    [2] SPAKEResponse,
+    encdata     [3] EncryptedData,
     ...
 }
 
