@@ -129,7 +129,7 @@
       AD-CAMMAC, in the initial credentials and copy it from a ticket-granting ticket 
       into service tickets:</t>
 
-      <t>AD-AUTHENTICATION-INDICATOR       TBD</t>
+      <t>AD-AUTHENTICATION-INDICATOR       97</t>
 
       <t>The corresponding ad-data field contains the DER encoding of the ASN.1 type which 
       is defined as</t>
