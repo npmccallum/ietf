@@ -109,12 +109,14 @@
       multi-factor authentication using One Time Password devices or Public Key Cryptography. 
       Implementations that have Pre-Authentication mechanisms offering significantly 
       different strengths of client authentication may choose to keep track of the 
-      strength of the authentication used as an input into policy decisions. This 
-      document proposes a new Authorization Data Type to be used to convey the 
-      authentication strength to the application services. The AD type is wrapped in the 
-      <xref target="I-D.ietf-kitten-cammac">AD-CAMMAC</xref> container and contains 
-      information about the type of authentication mechanism used by the Kerberos client 
-      to authenticate itself to the KDC.</t>
+      strength of the authentication used as an input into policy decisions.</t>
+
+      <t>This document proposes a new Authorization Data Type to be used to convey the
+      authentication strength to the application services. The KDC can provide the DER
+      encoding of the ASN.1 type defined in this document into the ad-data field of the
+      <xref target="I-D.ietf-kitten-cammac">AD-CAMMAC</xref> container. This ASN.1 type
+      contains information about the type of authentication mechanism used by the Kerberos
+      client to authenticate itself to the KDC.</t>
     </section>
 
     <section title="Document Conventions">
@@ -144,11 +146,8 @@
       a <xref target="RFC6711">Level of Assurance Profile</xref>.</t>
 
       <t>The AD-AUTHENTICATION-INDICATOR MUST be included in the AD-CAMMAC container
-      so that its contents can be protected.
-    
-      The AD-AUTHENTICATION-INDICATOR MAY safely be ignored by the applications and KDCs
-      that do not implement this element.</t>
-      
+      so that its contents can be protected. The AD-AUTHENTICATION-INDICATOR MAY safely be
+      ignored by the applications and KDCs that do not implement this element.</t>
     </section>
 
     <section title="Security Considerations">
