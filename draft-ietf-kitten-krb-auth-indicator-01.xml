@@ -218,6 +218,22 @@
     
 <?rfc rfcedstyle="yes"?>
 
+    <section title="ASN.1 Module">
+      <figure>
+        <artwork><![CDATA[
+KerberosV5AuthenticationIndicators {
+        iso(1) identified-organization(3) dod(6) internet(1)
+        security(5) kerberosV5(2) modules(4)
+        authentication-indicators(9)
+} DEFINITIONS EXPLICIT TAGS ::= BEGIN
+
+AD-AUTHENTICATION-INDICATOR ::= SEQUENCE OF UTF8String
+
+END
+]]></artwork>
+      </figure>
+    </section>
+
     <section title="Acknowledgements">
       <figure>
         <artwork><![CDATA[
