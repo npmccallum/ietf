@@ -163,15 +163,15 @@
       &rfc7553;
 
       <reference anchor="MS-KKDCP" target="http://msdn.microsoft.com/en-us/library/hh553774.aspx">
-           <front>
-               <title>[MS-KKDCP]: Kerberos Key Distribution Center (KDC) Proxy Protocol</title>
-               <author>
-                    <organization>Microsoft</organization>
-               </author>
+        <front>
+          <title>[MS-KKDCP]: Kerberos Key Distribution Center (KDC) Proxy Protocol</title>
+          <author>
+            <organization>Microsoft</organization>
+          </author>
 
-               <date month="May" year="2014" />
-           </front>
-       </reference>
+          <date month="May" year="2014" />
+        </front>
+      </reference>
     </references>
 
 <?rfc rfcedstyle="yes"?>
