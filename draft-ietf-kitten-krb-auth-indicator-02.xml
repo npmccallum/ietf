@@ -17,7 +17,7 @@
 <?rfc autobreaks="yes"?>
 <?rfc docmapping="yes"?>
 
-<rfc category="std" docName="draft-ietf-kitten-krb-auth-indicator-01"
+<rfc category="std" docName="draft-ietf-kitten-krb-auth-indicator-02"
      ipr="trust200902" updates="4120">
   <front>
     <title abbrev="Authentication Indicator">Authentication Indicator in Kerberos Tickets</title>
