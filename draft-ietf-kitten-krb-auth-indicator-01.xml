@@ -90,11 +90,11 @@
     <workgroup>Internet Engineering Task Force</workgroup>
 
     <abstract>
-      <t>This document proposes an extension in the <xref target="RFC4120">Kerberos
-      protocol</xref>. It defines a new Authorization Data Type
+      <t>This document specifies an extension in the <xref target="RFC4120">Kerberos
+      protocol</xref>. It defines a new authorization data type
       AD-AUTHENTICATION-INDICATOR. The purpose of introducing this data type is to
       include an indicator of the strength of a client's authentication in the service
-      tickets so that the application services can use it as an input into policy
+      tickets so that application services can use it as an input into policy
       decisions.</t>
     </abstract>
   </front>
@@ -104,19 +104,16 @@
     <section title="Introduction">
       <t><xref target="RFC4120">Kerberos</xref> allows secure interaction among users and
       services over a network. It supports a variety of authentication mechanisms using its
-      <xref target="RFC6113">Pre-Authentication framework</xref>. The Kerberos Authentication
-      Service has been architected to support password based authentication as well as
-      multi-factor authentication using One Time Password devices or Public Key Cryptography.
-      Implementations that have Pre-Authentication mechanisms offering significantly
+      <xref target="RFC6113">pre-authentication framework</xref>. The Kerberos authentication
+      service has been architected to support password based authentication as well as
+      multi-factor authentication using one-time password devices or public key cryptography.
+      Implementations that have pre-authentication mechanisms offering significantly
       different strengths of client authentication may choose to keep track of the
       strength of the authentication used as an input into policy decisions.</t>
 
-      <t>This document proposes a new Authorization Data Type to be used to convey the
-      authentication strength to the application services. The KDC can provide the DER
-      encoding of the ASN.1 type defined in this document into the ad-data field of the
-      <xref target="RFC7751">AD-CAMMAC</xref> container. This ASN.1 type contains information
-      about the type of authentication mechanism used by the Kerberos client to authenticate
-      itself to the KDC.</t>
+      <t>This document specifies a new authorization data type to convey authentication
+      strength to application services. Elements of this type appear within an <xref
+      target="RFC7751">AD-CAMMAC</xref> container.</t>
     </section>
 
     <section title="Document Conventions">
@@ -127,14 +124,14 @@
     </section>
 
     <section title="AD Type Specification">
-      <t>The KDC MAY include the following Authorization Data element, wrapped in
-      AD-CAMMAC, in the initial credentials and copy it from a ticket-granting ticket
+      <t>The KDC MAY include the following authorization data element, wrapped in
+      AD-CAMMAC, in initial credentials, and copy it from a ticket-granting ticket
       into service tickets:</t>
 
       <t>AD-AUTHENTICATION-INDICATOR       97</t>
 
-      <t>The corresponding ad-data field contains the DER encoding of the ASN.1 type which
-      is defined as</t>
+      <t>The corresponding ad-data field contains the DER encoding of the following ASN.1
+      type:</t>
 
       <t>AD-AUTHENTICATION-INDICATOR ::= SEQUENCE OF UTF8String</t>
 
@@ -145,15 +142,16 @@
       name of the Pre-Authentication mechanism used, or alternatively URIs that reference
       a <xref target="RFC6711">Level of Assurance Profile</xref>.</t>
 
-      <t>The AD-AUTHENTICATION-INDICATOR MUST be included in the AD-CAMMAC container
-      so that its contents can be protected. The AD-AUTHENTICATION-INDICATOR MAY safely be
-      ignored by the applications and KDCs that do not implement this element.</t>
+      <t>Authorization data elements of type AD-AUTHENTICATION-INDICATOR MUST be included in
+      an AD-CAMMAC container so that their contents can be verified as originating from the
+      KDC. Elements of type AD-AUTHENTICATION-INDICATOR MAY safely be ignored by applications
+      and KDCs that do not implement this element.</t>
     </section>
 
     <section title="Security Considerations">
-      <t>AD-AUTHENTICATION-INDICATOR is wrapped in AD-CAMMAC which supersedes AD-KDC-ISSUED
-      container. AD-CAMMAC allows both the application service and the KDC to verify the
-      authenticity of the contained Authorization Data.</t>
+      <t>Elements of type AD-AUTHENTICATION-INDICATOR are wrapped in AD-CAMMAC
+      containers. AD-CAMMAC supersedes AD-KDC-ISSUED, and allows both application services
+      and the KDC to verify the authenticity of the contained authorization data.</t>
 
       <t>A malicious service can replace AD-CAMMAC in a service ticket
       with a legitimate AD-CAMMAC present in some other ticket that the service has
