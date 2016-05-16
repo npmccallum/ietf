@@ -4,7 +4,7 @@
 <!ENTITY rfc4120 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.4120.xml">
 <!ENTITY rfc2119 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2119.xml">
 <!ENTITY rfc6711 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6711.xml">
-<!ENTITY cammac SYSTEM "http://xml.resource.org/public/rfc/bibxml3/reference.I-D.draft-ietf-kitten-cammac-01.xml">
+<!ENTITY rfc7751 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.7751.xml">
 ]>
 <?xml-stylesheet type="text/xsl" href="rfc2629.xslt"?>
 
@@ -114,9 +114,9 @@
       <t>This document proposes a new Authorization Data Type to be used to convey the
       authentication strength to the application services. The KDC can provide the DER
       encoding of the ASN.1 type defined in this document into the ad-data field of the
-      <xref target="I-D.ietf-kitten-cammac">AD-CAMMAC</xref> container. This ASN.1 type
-      contains information about the type of authentication mechanism used by the Kerberos
-      client to authenticate itself to the KDC.</t>
+      <xref target="RFC7751">AD-CAMMAC</xref> container. This ASN.1 type contains information
+      about the type of authentication mechanism used by the Kerberos client to authenticate
+      itself to the KDC.</t>
     </section>
 
     <section title="Document Conventions">
@@ -184,7 +184,7 @@
       
       <!--AD CAMMAC-->
       
-      &cammac;
+      &rfc7751;
       
       <!--Key words for use in RFCs to Indicate Requirement Levels-->
 
