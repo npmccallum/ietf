@@ -4,7 +4,7 @@
 <!ENTITY rfc2782 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.2782.xml">
 <!ENTITY rfc3244 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.3244.xml">
 <!ENTITY rfc4120 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.4120.xml">
-<!ENTITY uri SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-faltstrom-uri-12.xml">
+<!ENTITY rfc7553 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.7553.xml">
 ]>
 <?xml-stylesheet type="text/xsl" href="rfc2629.xslt"?>
 
@@ -76,9 +76,8 @@
       <xref target="RFC4120">Kerberos V5</xref>, inheriting the same drawbacks
       outlined above.</t>
 
-      <t>This RFC defines two new <xref target="I-D.faltstrom-uri">URI DNS
-      records</xref>; one each for KDC and Kerberos Password service discovery.
-      </t>
+      <t>This RFC defines two new <xref target="RFC7553">URI DNS records</xref>;
+      one each for KDC and Kerberos Password service discovery.</t>
     </section>
 
     <section title="Document Conventions">
@@ -123,26 +122,28 @@
 
     <section title="Kerberos V5 KDC Service Discovery">
       <t>In order to discover a KDC service location, the client MUST query
-      the following <xref target="I-D.faltstrom-uri">URI DNS</xref> record
-      (REALM indicates the translation of the Kerberos realm to a DNS domain):
-      </t>
+      the following <xref target="RFC7553">URI DNS</xref> record (REALM
+      indicates the translation of the Kerberos realm to a DNS domain):</t>
+
       <t>_kerberos.REALM</t>
+
       <t>TTL, Class, URI, Priority, Weight and Target have the standard
       meanings as defined in <xref target="RFC2782">RFC 2782</xref> and the
-      <xref target="I-D.faltstrom-uri">URI DNS record type</xref>. Target
-      SHOULD contain one of the URI formats specified in this document.</t>
+      <xref target="RFC7553">URI DNS record type</xref>. Target SHOULD contain
+      one of the URI formats specified in this document.</t>
     </section>
 
     <section title="Kerberos Password Service Discovery">
       <t>In order to discover a password service location, the client MUST
-      query the following <xref target="I-D.faltstrom-uri">URI DNS</xref>
-      record (REALM indicates the translation of the Kerberos realm to a DNS
-      domain):</t>
+      query the following <xref target="RFC7553">URI DNS</xref> record (REALM
+      indicates the translation of the Kerberos realm to a DNS domain):</t>
+
       <t>_kpasswd.REALM</t>
+
       <t>TTL, Class, URI, Priority, Weight and Target have the standard
       meanings as defined in <xref target="RFC2782">RFC 2782</xref> and the
-      <xref target="I-D.faltstrom-uri">URI DNS record type</xref>. Target
-      SHOULD contain one of the URI formats specified in this document.</t>
+      <xref target="RFC7553">URI DNS record type</xref>. Target SHOULD contain
+      one of the URI formats specified in this document.</t>
     </section>
 
     <section title="Relationship to Existing Mechanism">
@@ -160,7 +161,7 @@
       &rfc2782;
       &rfc3244;
       &rfc4120;
-      &uri;
+      &rfc7553;
 
       <reference anchor="MS-KKDCP" target="http://msdn.microsoft.com/en-us/library/hh553774.aspx">
            <front>
