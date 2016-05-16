@@ -154,12 +154,13 @@
       containers. AD-CAMMAC supersedes AD-KDC-ISSUED, and allows both application services
       and the KDC to verify the authenticity of the contained authorization data.</t>
 
-      <t>A malicious service can replace AD-CAMMAC in a service ticket
-      with a legitimate AD-CAMMAC present in some other ticket that the service has
-      received. The KDC MUST ensure that the service does not tamper with the contents of
-      AD-CAMMAC or the ticket by including a kdc-verifier in the containing CAMMAC. This
-      binding protects AD-AUTHENTICATION-INDICATOR in case of constrained delegation such
-      as S4U2Proxy <xref target="MS-SFU"/> extension.</t>
+      <t>KDC implementations MUST use AD-CAMMAC verifiers as described in the the security
+      considerations of <xref target="RFC7751">RFC 7751</xref> to ensure that
+      AD-AUTHENTICATION-INDICATOR elements are not modified by an attacker.  Application
+      servers MUST validate the AD-CAMMAC container before making authorization decisions
+      based on AD-AUTHENTICATION-INDICATOR elements.  Application servers MUST NOT make
+      authorization decisions based on AD-AUTHENTICATION-INDICATOR elements which appear
+      outside of AD-CAMMAC containers.</t>
 
       <t>Using multiple strings in AD-AUTHENTICATION-INDICATOR MAY lead to ambiguity when a
       service tries to make a decision based on the AD-AUTHENTICATION-INDICATOR values.  This
