@@ -98,7 +98,8 @@
       <t>The following URI formats MUST be supported by clients. These formats
       indicate support for the standard UDP and TCP transports. The port
       number is optional. If the port is not specified, the client MUST
-      default to the standard port of the service.</t>
+      default to the standard port of the service (Kerberos V5 or Kerberos
+      Password).</t>
 
       <t>udp://host[:port]</t>
       <t>tcp://host[:port]</t>
@@ -111,10 +112,8 @@
         <t>These URIs indicate support for the <xref target="MS-KKDCP">
         MS-KKDCP</xref> protocol. The port number is optional. If the port is
         not specified, the client MUST default to the standard port of the
-        service. The path is also optional. If the path is not specified, the
-        client MUST default to '/'. Please note that this differs from the
-        default path specified in section 2.1 of <xref target="MS-KKDCP">
-        MS-KKDCP</xref>.</t>
+        transport (HTTP or HTTPS). The path is also optional.</t>
+
         <t>http://host[:port][path]</t>
         <t>https://host[:port][path]</t>
       </section>
