@@ -17,7 +17,7 @@
 <?rfc autobreaks="yes"?>
 <?rfc docmapping="yes"?>
 
-<rfc category="std" docName="draft-ietf-kitten-krb-auth-indicator-00"
+<rfc category="std" docName="draft-ietf-kitten-krb-auth-indicator-01"
      ipr="trust200902" updates="4120">
   <front>
     <title abbrev="Authentication Indicator">Authentication Indicator in Kerberos Tickets</title>
@@ -83,7 +83,8 @@
         <email>npmccallum@redhat.com</email>
       </address>
     </author>
-    <date month="February" year="2015" />
+
+    <date month="May" year="2016" />
 
     <area>Security</area>
 
