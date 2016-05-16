@@ -17,7 +17,7 @@
 <?rfc autobreaks="yes"?>
 <?rfc docmapping="yes"?>
 
-<rfc category="std" docName="draft-mccallum-kitten-krb-service-discovery-00"
+<rfc category="std" docName="draft-mccallum-kitten-krb-service-discovery-01"
      ipr="trust200902" updates="4120">
   <front>
     <title abbrev="Service Discovery">Kerberos Service Discovery using DNS</title>
@@ -41,7 +41,8 @@
         <email>npmccallum@redhat.com</email>
       </address>
     </author>
-    <date month="March" year="2015" />
+
+    <date month="May" year="2016" />
 
     <area>Security</area>
 
