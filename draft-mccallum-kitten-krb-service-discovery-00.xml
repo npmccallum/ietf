@@ -37,14 +37,14 @@
 
           <country>USA</country>
         </postal>
-        
+
         <email>npmccallum@redhat.com</email>
       </address>
     </author>
     <date month="March" year="2015" />
 
     <area>Security</area>
-    
+
     <workgroup>Internet Engineering Task Force</workgroup>
 
     <abstract>
@@ -69,13 +69,13 @@
       over client preferences for TCP or UDP. Third, any new transports for
       reaching the KDC (such as MS-KKDCP) will require new records and
       additional DNS queries.</t>
-      
+
       <t>The <xref target="RFC3244">Kerberos Password</xref> protocol has no
       defined procedure for discovery similar to the KDC method described above.
       Implementations have largely chosen a similar method to section 7.2.3 of
       <xref target="RFC4120">Kerberos V5</xref>, inheriting the same drawbacks
       outlined above.</t>
-      
+
       <t>This RFC defines two new <xref target="I-D.faltstrom-uri">URI DNS
       records</xref>; one each for KDC and Kerberos Password service discovery.
       </t>
@@ -168,12 +168,12 @@
                <author>
                     <organization>Microsoft</organization>
                </author>
-               
+
                <date month="May" year="2014" />
            </front>
        </reference>
     </references>
-    
+
 <?rfc rfcedstyle="yes"?>
 
     <section title="Acknowledgements">
