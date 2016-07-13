@@ -37,6 +37,11 @@
       <address><email>ssorce@redhat.com</email></address>
     </author>
 
+    <author fullname="Robbie Harwood" initials="R." surname="Harwood">
+      <organization>Red Hat, Inc.</organization>
+      <address><email>rharwood@redhat.com</email></address>
+    </author>
+
     <author fullname="Greg Hudson" initials="G." surname="Hudson">
       <organization>MIT</organization>
       <address><email>ghudson@mit.edu</email></address>
