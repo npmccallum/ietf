@@ -5,6 +5,7 @@
 <!ENTITY rfc4120 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.4120.xml">
 <!ENTITY rfc6113 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6113.xml">
 <!ENTITY rfc4120 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.4120.xml">
+<!ENTITY rfc5226 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.5226.xml">
 <!ENTITY rfc6560 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6560.xml">
 <!ENTITY spake SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-irtf-cfrg-spake2-01.xml">
 <!ENTITY CCITT.X680.2002 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml2/reference.CCITT.X680.2002.xml">
@@ -724,13 +725,137 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
     </section>
 
     <section title="IANA Considerations">
-      <t>One registry for numeric values has been created: Kerberos
-      Second Factor Type Numbers.  These are signed values ranging from
-      -2147483648 to 2147483647.  Positive values should be assigned only
-      for algorithms specified in accordance with this specification for
-      use with Kerberos or related protocols. Negative values are for
-      private use; local and experimental algorithms should use these
-      values.  Zero is reserved and may not be assigned.</t>
+      <t>This document establishes two registries with the following
+      procedure, in accordance with <xref target="RFC5226"/>:</t>
+
+      <t>Registry entries are to be evaluated using the Specification Required
+      method.  All specifications must be be published prior to entry
+      inclusion in the registry.  There will be a three-week review period by
+      Designated Experts on the krb5-spake-review@ietf.org mailing list.
+      Prior to the end of the review, the Designated Experts must approve or
+      deny the request.  This decision is to be conveyed to both the IANA and
+      the list, and should include reasonably detailed explanation in the case
+      of a denial as well as whether the request can be resubmitted.</t>
+
+      <section title="Kerberos Second Factor Type Numbers">
+        <t>This section species the IANA "Kerberos Second Factor Type Numbers"
+        registry.  This registry records the name, assigned number, and
+        reference for each algorithm.</t>
+
+        <section title="Registration Template">
+          <t>
+            <list style="hanging">
+              <t hangText="ID Number:">
+                This is a value that uniquely identifies this entry.  It is a
+                signed integer in range -2147483648 to 2147483647, inclusive.
+                Positive values must be assigned only for algorithms specified
+                in accordance with these rules for use with Kerberos and
+                related protocols.  Negative values should be used for private
+                and experimental algorithms only.  Zero is reserved and must
+                not be assigned.
+              </t>
+
+              <t hangText="Name:">
+                Brief, unique, human-readable name for this algorithm.
+              </t>
+
+              <t hangText="Reference:">
+                URI or otherwise unique identifier for where the details of
+                this algorithm can be found.  It should be as specific as
+                reasonably possible.
+              </t>
+            </list>
+          </t>
+        </section>
+
+        <section title="Initial Registry Contents">
+          <texttable style="none" align="left">
+            <ttcol /><ttcol />
+            <c>&#8226;</c><c>ID Number: 1</c>
+            <c>&#8226;</c><c>Name: "NONE"</c>
+            <c>&#8226;</c><c>Reference: This value indicates that no second factor is in use.</c>
+          </texttable>
+        </section>
+      </section>
+
+      <section title="Kerberos SPAKE Groups">
+        <t>This section specifies the IANA "Kerberos SPAKE Groups" registry.
+        This registry records the number, name, reference, serialization
+        method, and values of M and N for each entry.</t>
+
+        <section title="Registration Template">
+          <t>
+            <list style="hanging">
+              <t hangText="ID Number:">
+                This is a value that uniquely identifies this entry.  It is a
+                signed integer in range -2147483648 to 2147483647, inclusive.
+                Positive values must be assigned only for algorithms specified in
+                accordance with these rules for use with Kerberos and related
+                protocols.  Negative values should be use for private and
+                experimental use only.  Zero is reserved and must not be
+                assigned.  Values should be assigned in increasing order.
+              </t>
+
+              <t hangText="Name:">
+                Brief, unique, human readable name for this entry.
+              </t>
+              
+              <t hangText="Serialization Method:">
+                Reference to the algorithm by which points on the curve are to
+                be serialized.
+              </t>
+
+              <t hangText="M Value:">
+                The encoded value of M on this curve.
+              </t>
+
+              <t hangText="N Value:">
+                The encoded value of N on this curve.
+              </t>
+            </list>
+          </t>
+        </section>
+
+        <section title="Initial Registry Contents">
+          <texttable style="none" align="left">
+            <ttcol /><ttcol />
+            <c>&#8226;</c><c>ID Number: 1</c>
+            <c>&#8226;</c><c>Name: "P-256"</c>
+            <c>&#8226;</c><c>Serialization Method: SEC-1 compressed</c>
+            <c>&#8226;</c><c>M Value: 02886e2f97ace46e55ba9dd7242579f2993b64e16ef3dcab95afd497333d8fa12f</c>
+            <c>&#8226;</c><c>N Value: 03d8bbd6c639c62937b04d997f38c3770719c629d7014d49a24b4f98baa1292b49</c>
+          </texttable>
+
+          <texttable style="none" align="left">
+            <ttcol /><ttcol />
+            <c>&#8226;</c><c>ID Number: 2</c>
+            <c>&#8226;</c><c>Name: "P-384"</c>
+            <c>&#8226;</c><c>Serialization Method: SEC-1 compressed</c>
+            <c>&#8226;</c><c>M Value:
+            030ff0895ae5ebf6187080a82d82b42e2765e3b2f8749c7e05eba3664
+            34b363d3dc36f15314739074d2eb8613fceec2853</c>
+            <c>&#8226;</c><c>N Value:
+            02c72cf2e390853a1c1c4ad816a62fd15824f56078918f43f922ca215
+            18f9c543bb252c5490214cf9aa3f0baab4b665c10</c>
+          </texttable>
+
+          <texttable style="none" align="left">
+            <ttcol /><ttcol />
+            <c>&#8226;</c><c>ID Number: 3</c>
+            <c>&#8226;</c><c>Name: "P-521"</c>
+            <c>&#8226;</c><c>Serialization Method: SEC-1 compressed</c>
+            <c>&#8226;</c><c>M Value:
+            02003f06f38131b2ba2600791e82488e8d20ab889af753a41806c5db1
+            8d37d85608cfae06b82e4a72cd744c719193562a653ea1f119eef9356907edc9b5
+            6979962d7aa</c>
+            <c>&#8226;</c><c>N Value:
+            0200c7924b9ec017f3094562894336a53c50167ba8c5963876880542b
+            c669e494b2532d76c5b53dfb349fdf69154b9e0048c58a42e8ed04cef052a3bc34
+            9d95575cd25</c>
+          </texttable>
+        </section>
+      </section>
+
     </section>
   </middle>
 
@@ -740,6 +865,7 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
       &rfc2119;
       &rfc3961;
       &rfc4120;
+      &rfc5226;
       &rfc6113;
       &spake;
       &CCITT.X680.2002;
