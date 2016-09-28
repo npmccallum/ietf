@@ -17,7 +17,7 @@
 <?rfc autobreaks="yes"?>
 <?rfc docmapping="yes"?>
 
-<rfc category="std" docName="draft-ietf-kitten-krb-auth-indicator-02"
+<rfc category="std" docName="draft-ietf-kitten-krb-auth-indicator-03"
      ipr="trust200902" updates="4120">
   <front>
     <title abbrev="Authentication Indicator">Authentication Indicator in Kerberos Tickets</title>
@@ -84,7 +84,7 @@
       </address>
     </author>
 
-    <date month="May" year="2016" />
+    <date month="September" year="2016" />
 
     <area>Security</area>
 
@@ -94,7 +94,7 @@
       <t>This document specifies an extension in the <xref target="RFC4120">Kerberos
       protocol</xref>. It defines a new authorization data type
       AD-AUTHENTICATION-INDICATOR. The purpose of introducing this data type is to
-      include an indicator of the strength of a client's authentication in the service
+      include an indicator of the strength of a client's authentication in service
       tickets so that application services can use it as an input into policy
       decisions.</t>
     </abstract>
@@ -106,15 +106,17 @@
       <t><xref target="RFC4120">Kerberos</xref> allows secure interaction among users and
       services over a network. It supports a variety of authentication mechanisms using its
       <xref target="RFC6113">pre-authentication framework</xref>. The Kerberos authentication
-      service has been architected to support password based authentication as well as
-      multi-factor authentication using one-time password devices or public key cryptography.
-      Implementations that have pre-authentication mechanisms offering significantly
-      different strengths of client authentication may choose to keep track of the
-      strength of the authentication used as an input into policy decisions.</t>
+      service has been architected to support password-based authentication as well as
+      multi-factor authentication using one-time password devices, public-key cryptography and
+      other pre-authentication schemes. Implementations that offer pre-authentication mechanisms
+      supporting significantly different strengths of client authentication may choose to keep
+      track of the strength of the authentication that was used, for use as an input into policy
+      decisions.</t>
 
       <t>This document specifies a new authorization data type to convey authentication
-      strength to application services. Elements of this type appear within an <xref
-      target="RFC7751">AD-CAMMAC</xref> container.</t>
+      strength information to application services. Elements of this type MUST appear within an
+      <xref target="RFC7751">AD-CAMMAC</xref> container. This requirement exists to provide
+      integrity protection from man-in-the-middle attacks.</t>
     </section>
 
     <section title="Document Conventions">
@@ -125,11 +127,8 @@
     </section>
 
     <section title="AD Type Specification">
-      <t>The KDC MAY include the following authorization data element, wrapped in
-      AD-CAMMAC, in initial credentials, and copy it from a ticket-granting ticket
-      into service tickets:</t>
-
-      <t>AD-AUTHENTICATION-INDICATOR       97</t>
+      <t>The KDC MAY include authorization data of ad-type 97, wrapped in AD-CAMMAC, in initial
+      credentials. The KDC MAY copy it from a ticket-granting ticket into service tickets.</t>
 
       <t>The corresponding ad-data field contains the DER encoding of the following ASN.1
       type:</t>
@@ -139,9 +138,11 @@
       <t>Each UTF8String value is a short string that indicates that a particular set of
       requirements was met during the initial authentication.  These strings are intended
       to be compared against known values. They are not intended to store structured data.
-      These strings MAY be site-defined strings that do not contain a colon such as the
-      name of the Pre-Authentication mechanism used, or alternatively URIs that reference
-      a <xref target="RFC6711">Level of Assurance Profile</xref>.</t>
+      Each string MUST be either:</t>
+
+      <t>* A URI which references a <xref target="RFC6711">Level of Assurance Profile</xref></t>
+      <t>* A site-defined string, which MUST NOT contain a colon, whose meaning is determined
+      by the realm administrator.</t>
 
       <t>Authorization data elements of type AD-AUTHENTICATION-INDICATOR MUST be included in
       an AD-CAMMAC container so that their contents can be verified as originating from the
