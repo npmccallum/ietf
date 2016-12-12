@@ -224,21 +224,6 @@
         <t>Both KDCs and clients which implement SPAKE pre-authentication MUST
         support the use of KDC_ERR_MORE_PREAUTH_DATA_REQUIRED.</t>
       </section>
-
-      <section title="Group Support">
-        <t>Both KDCs and clients MUST implement one or more groups for which the
-        discrete logarithm problem is hard, each with an corresponding object
-        identifer. Group object identifiers MUST refer to one of the following:
-        <list style="symbols">
-          <t>One of the eight elliptic curves specified in <xref target="SEC2"/>
-          section 2, using the corresponding object identifier from appendix
-          A.2.1.</t>
-          <t>A group with an unambiguous specification for representing group
-          elements as octet strings, and an unambiguous specification for
-          converting an octet string of a specific length into an integer for
-          use as a scalar multiplier.</t>
-        </list></t>
-      </section>
     </section>
 
     <section title="SPAKE Pre-Authentication Message Protocol">
@@ -293,13 +278,15 @@ PA-SPAKE ::= CHOICE {
         and the client desires to use it, the client will generate a new
         AS-REQ message containing a PA-SPAKE PA-DATA element using the support
         choice. This message indicates to the KDC which groups the client
-        prefers for the SPAKE operation. The groups sequence is ordered from
-        the most preferred group to the least preferred group.</t>
+        prefers for the SPAKE operation. The group numbers are defined in the IANA
+        "Kerberos SPAKE Groups" registry created by this document. The groups
+        sequence is ordered from the most preferred group to the least preferred
+        group.</t>
 
         <figure>
           <artwork><![CDATA[
 SPAKESupport ::= SEQUENCE {
-    groups      [0] SEQUENCE (SIZE(1..MAX)) OF OBJECT IDENTIFIER,
+    groups      [0] SEQUENCE (SIZE(1..MAX)) OF Int32,
     ...
 }
 ]]></artwork>
@@ -323,7 +310,7 @@ SPAKESupport ::= SEQUENCE {
         <figure>
           <artwork><![CDATA[
 SPAKEChallenge ::= SEQUENCE {
-    group       [0] OBJECT IDENTIFIER,
+    group       [0] Int32,
     pubkey      [1] OCTET STRING,
     factors     [2] SEQUENCE (SIZE(1..MAX)) OF SPAKESecondFactor,
     ...
@@ -332,7 +319,8 @@ SPAKEChallenge ::= SEQUENCE {
         </figure>
 
         <t>The group field indicates the KDC-selected group used for all SPAKE
-        calculations.</t>
+        calculations as defined in the IANA "Kerberos SPAKE Groups" registry
+        created by this document.</t>
 
         <t>The pubkey field indicates the KDC's public key generated using the M
         constant in the SPAKE algorithm, with inputs and conversions as
@@ -471,37 +459,31 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
     </section>
 
     <section title="SPAKE Parameters and Conversions" anchor="spakeparams">
+      <t>Group elements are converted to octet strings for the SPAKEChallenge
+      and SPAKEResponse pubkey fields and for key derivation using the
+      serialization method defined in the IANA "Kerberos SPAKE Groups"
+      registry created by this document.</t>
+      <t>The SPAKE algorithm requires constants M and N for each group. These
+      constants are defined in the IANA "Kerberos SPAKE Groups" registry
+      created by this document.</t>
       <t>The SPAKE algorithm requires a shared secret input w to be used as a
       scalar multiplier (see <xref target="I-D.irtf-cfrg-spake2"/> section
       2). This value MUST be produced from the initial reply key as follows:
       <list style="numbers">
-        <t>Determine a scalar octet string input length for the chosen group.
-        For SEC 2 curves over a prime field F(p), this is ceil(log2(p)/8).  For
-        other groups, this length is specified by the group.</t>
-        <t>Produce an octet string of the above length with PRF+(K,
+        <t>Determine the length of the multiplier octet string defined in the
+        IANA "Kerberos SPAKE Groups" registry created by this document.</t>
+        <t>Produce an octet string of the above length using PRF+(K,
         "SPAKEsecret"), where K is the initial reply key and PRF+ is defined
         in <xref target="RFC6113"/> section 5.1.</t>
-        <t>If the chosen group is secp521r1, set the high seven bits of the
-        first byte to 0 so that there are at most 521 significant bits in the
-        octet string.</t>
-        <t>For SEC 2 curves, decode the octet string as a big-endian integer as
-        specified in <xref target="SEC1"/> section 2.3.8.  For other groups,
-        decode the octet string as specified by the group.</t>
+        <t>Convert the octet array to a multiplier scalar using the multiplier
+        conversion method defined in the IANA "Kerberos SPAKE Groups" registry
+        created by this document.</t>
       </list></t>
       <t>The KDC chooses a secret scalar value x and the client chooses a
       secret scalar value y. As required by the SPAKE algorithm, these values
       are chosen randomly and uniformly. The KDC and client MUST NOT reuse x
       or y values for authentications involving different initial reply
       keys.</t>
-      <t>The SPAKE algorithm requires constants M and N for each
-      group.  These constants MUST be taken from <xref
-      target="I-D.irtf-cfrg-spake2"/> section 3 or computed using the
-      method described therein.</t>
-      <t>Group elements are converted to octet strings for the SPAKEChallenge
-      and SPAKEResponse pubkey fields and for key derivation. For SEC 2 curves,
-      group elements are represented as specified in <xref target="SEC1"/>
-      section 2.3.3 with point compression on. For other groups, the
-      representation is specified by the group.</t>
     </section>
 
     <section title="Transcript Checksum" anchor="tcksum">
@@ -575,19 +557,6 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       <t>This second factor type indicates that no second factor is used.
       Whenever a SPAKESecondFactor is used with SF-NONE, the data field MUST be
       omitted. The SF-NONE second factor always successfully validates.</t>
-    </section>
-
-    <section title="Recommended Groups">
-      <t>In the interest of broad compatibility, the following groups are
-      recommended for implementation:
-      <list style="symbols">
-        <t>P256</t>
-        <t>P384</t>
-        <t>P521</t>
-      </list></t>
-
-      <t>All of these groups encode their public keys in SEC1 compressed
-      format.</t>
     </section>
 
     <section title="Security Considerations">
@@ -717,6 +686,16 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       from the KDC to the client. When used as a stand-alone mechanism, the
       traditional KDC authentication provided by the KDC-REP enc-part still
       applies.</t>
+
+      <t>The conversion of the scalar multiplier for the SPAKE w parameter
+      may produce a multiplier that is larger than the order of the group.
+      Some group implementations may be unable to handle such a multiplier.
+      Others may silently accept such a multiplier, but proceed to perform
+      multiplication that is not constant time. This is a minor risk in all
+      known groups, but is a major risk for P-521 due to the extra seven
+      high bits in the input octet string. A common solution to this problem
+      is achieved by reducing the multiplier modulo the group order, taking
+      care to ensure constant time operation.</t>
     </section>
 
     <section title="Assigned Constants">
@@ -742,10 +721,10 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
       the list, and should include reasonably detailed explanation in the case
       of a denial as well as whether the request can be resubmitted.</t>
 
-      <section title="Kerberos Second Factor Type Numbers">
-        <t>This section species the IANA "Kerberos Second Factor Type Numbers"
-        registry.  This registry records the name, assigned number, and
-        reference for each algorithm.</t>
+      <section title="Kerberos Second Factor Types">
+        <t>This section species the IANA "Kerberos Second Factor Types"
+        registry.  This registry records the number, name, implementation
+        requirements and reference for each second factor protocol.</t>
 
         <section title="Registration Template">
           <t>
@@ -764,6 +743,12 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
                 Brief, unique, human-readable name for this algorithm.
               </t>
 
+              <t hangText="Implementation Requirements:">
+                The second factor implementation requirements, which must be
+                one of the words Required, Recommended, Optional, Deprecated,
+                or Prohibited.
+              </t>
+
               <t hangText="Reference:">
                 URI or otherwise unique identifier for where the details of
                 this algorithm can be found.  It should be as specific as
@@ -777,16 +762,18 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
           <texttable style="none" align="left">
             <ttcol /><ttcol />
             <c>&#8226;</c><c>ID Number: 1</c>
-            <c>&#8226;</c><c>Name: "NONE"</c>
-            <c>&#8226;</c><c>Reference: This value indicates that no second factor is in use.</c>
+            <c>&#8226;</c><c>Name: NONE</c>
+            <c>&#8226;</c><c>Implementation Requirements: Required</c>
+            <c>&#8226;</c><c>Reference: this draft.</c>
           </texttable>
         </section>
       </section>
 
       <section title="Kerberos SPAKE Groups">
         <t>This section specifies the IANA "Kerberos SPAKE Groups" registry.
-        This registry records the number, name, reference, serialization
-        method, and values of M and N for each entry.</t>
+        This registry records the number, name, implementation requirements,
+        specification, serialization, multiplier length, multiplier conversion,
+        SPAKE M constant and SPAKE N constant.</t>
 
         <section title="Registration Template">
           <t>
@@ -796,7 +783,7 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
                 signed integer in range -2147483648 to 2147483647, inclusive.
                 Positive values must be assigned only for algorithms specified in
                 accordance with these rules for use with Kerberos and related
-                protocols.  Negative values should be use for private and
+                protocols.  Negative values should be used for private and
                 experimental use only.  Zero is reserved and must not be
                 assigned.  Values should be assigned in increasing order.
               </t>
@@ -804,18 +791,36 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
               <t hangText="Name:">
                 Brief, unique, human readable name for this entry.
               </t>
-              
-              <t hangText="Serialization Method:">
-                Reference to the algorithm by which points on the curve are to
-                be serialized.
+
+              <t hangText="Implementation Requirements:">
+                The group implementation requirements, which must be one of the
+                words Required, Recommended, Optional, Deprecated, or Prohibited.
               </t>
 
-              <t hangText="M Value:">
-                The encoded value of M on this curve.
+              <t hangText="Specification:">
+                Reference to the definition of the group parameters and operations.
               </t>
 
-              <t hangText="N Value:">
-                The encoded value of N on this curve.
+              <t hangText="Serialization:">
+                Reference to the definition of the method used to serialize
+                group elements.
+              </t>
+
+              <t hangText="Multiplier Length:">
+                The length of the input octet string to multiplication operations.
+              </t>
+
+              <t hangText="Multiplier Conversion:">
+                Reference to the definition of the method used to convert an
+                octet string to a multiplier scalar.
+              </t>
+
+              <t hangText="SPAKE M Constant:">
+                The serialized value of the SPAKE M constant in hexadecimal notation.
+              </t>
+
+              <t hangText="SPAKE N Constant:">
+                The serialized value of the SPAKE N constant in hexadecimal notation.
               </t>
             </list>
           </t>
@@ -825,21 +830,29 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
           <texttable style="none" align="left">
             <ttcol /><ttcol />
             <c>&#8226;</c><c>ID Number: 1</c>
-            <c>&#8226;</c><c>Name: "P-256"</c>
-            <c>&#8226;</c><c>Serialization Method: SEC-1 compressed</c>
-            <c>&#8226;</c><c>M Value: 02886e2f97ace46e55ba9dd7242579f2993b64e16ef3dcab95afd497333d8fa12f</c>
-            <c>&#8226;</c><c>N Value: 03d8bbd6c639c62937b04d997f38c3770719c629d7014d49a24b4f98baa1292b49</c>
+            <c>&#8226;</c><c>Name: P-256</c>
+            <c>&#8226;</c><c>Implementation Requirements: Required</c>
+            <c>&#8226;</c><c>Specification: <xref target="SEC2"/> section 2.4.2</c>
+            <c>&#8226;</c><c>Serialization: <xref target="SEC1"/> section 2.3.3 (compressed).</c>
+            <c>&#8226;</c><c>Multiplier Length: 32</c>
+            <c>&#8226;</c><c>Multiplier Conversion: <xref target="SEC1"/> section 2.3.8.</c>
+            <c>&#8226;</c><c>SPAKE M Constant: 02886e2f97ace46e55ba9dd7242579f2993b64e16ef3dcab95afd497333d8fa12f</c>
+            <c>&#8226;</c><c>SPAKE N Constant: 03d8bbd6c639c62937b04d997f38c3770719c629d7014d49a24b4f98baa1292b49</c>
           </texttable>
 
           <texttable style="none" align="left">
             <ttcol /><ttcol />
             <c>&#8226;</c><c>ID Number: 2</c>
-            <c>&#8226;</c><c>Name: "P-384"</c>
-            <c>&#8226;</c><c>Serialization Method: SEC-1 compressed</c>
-            <c>&#8226;</c><c>M Value:
+            <c>&#8226;</c><c>Name: P-384</c>
+            <c>&#8226;</c><c>Implementation Requirements: Optional</c>
+            <c>&#8226;</c><c>Specification: <xref target="SEC2"/> section 2.5.1</c>
+            <c>&#8226;</c><c>Serialization: <xref target="SEC1"/> section 2.3.3 (compressed).</c>
+            <c>&#8226;</c><c>Multiplier Length: 48</c>
+            <c>&#8226;</c><c>Multiplier Conversion: <xref target="SEC1"/> section 2.3.8.</c>
+            <c>&#8226;</c><c>SPAKE M Constant:
             030ff0895ae5ebf6187080a82d82b42e2765e3b2f8749c7e05eba3664
             34b363d3dc36f15314739074d2eb8613fceec2853</c>
-            <c>&#8226;</c><c>N Value:
+            <c>&#8226;</c><c>SPAKE N Constant:
             02c72cf2e390853a1c1c4ad816a62fd15824f56078918f43f922ca215
             18f9c543bb252c5490214cf9aa3f0baab4b665c10</c>
           </texttable>
@@ -847,13 +860,17 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
           <texttable style="none" align="left">
             <ttcol /><ttcol />
             <c>&#8226;</c><c>ID Number: 3</c>
-            <c>&#8226;</c><c>Name: "P-521"</c>
-            <c>&#8226;</c><c>Serialization Method: SEC-1 compressed</c>
-            <c>&#8226;</c><c>M Value:
+            <c>&#8226;</c><c>Name: P-521</c>
+            <c>&#8226;</c><c>Implementation Requirements: Optional</c>
+            <c>&#8226;</c><c>Specification: <xref target="SEC2"/> section 2.6.1</c>
+            <c>&#8226;</c><c>Serialization: <xref target="SEC1"/> section 2.3.3 (compressed).</c>
+            <c>&#8226;</c><c>Multiplier Length: 66</c>
+            <c>&#8226;</c><c>Multiplier Conversion: <xref target="SEC1"/> section 2.3.8.</c>
+            <c>&#8226;</c><c>SPAKE M Constant:
             02003f06f38131b2ba2600791e82488e8d20ab889af753a41806c5db1
             8d37d85608cfae06b82e4a72cd744c719193562a653ea1f119eef9356907edc9b5
             6979962d7aa</c>
-            <c>&#8226;</c><c>N Value:
+            <c>&#8226;</c><c>SPAKE N Constant:
             0200c7924b9ec017f3094562894336a53c50167ba8c5963876880542b
             c669e494b2532d76c5b53dfb349fdf69154b9e0048c58a42e8ed04cef052a3bc34
             9d95575cd25</c>
@@ -921,12 +938,12 @@ IMPORTS
         -- as defined in RFC 4120.
 
 SPAKESupport ::= SEQUENCE {
-    groups      [0] SEQUENCE (SIZE(1..MAX)) OF OBJECT IDENTIFIER,
+    groups      [0] SEQUENCE (SIZE(1..MAX)) OF Int32,
     ...
 }
 
 SPAKEChallenge ::= SEQUENCE {
-    group       [0] OBJECT IDENTIFIER,
+    group       [0] Int32,
     pubkey      [1] OCTET STRING,
     factors     [2] SEQUENCE (SIZE(1..MAX)) OF SPAKESecondFactor,
     ...
