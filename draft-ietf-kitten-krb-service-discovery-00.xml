@@ -20,7 +20,7 @@
 <?rfc autobreaks="yes"?>
 <?rfc docmapping="yes"?>
 
-<rfc category="std" docName="draft-mccallum-kitten-krb-service-discovery-03"
+<rfc category="std" docName="draft-ietf-kitten-krb-service-discovery-00"
      ipr="trust200902" updates="4120">
   <front>
     <title abbrev="Service Discovery">Kerberos Service Discovery using DNS</title>
@@ -64,7 +64,7 @@
       </address>
     </author>
 
-    <date month="Sep" year="2016" />
+    <date month="Feb" year="2017" />
 
     <area>Security</area>
 
