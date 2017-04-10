@@ -8,6 +8,7 @@
 <!ENTITY rfc5226 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.5226.xml">
 <!ENTITY rfc0768 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.0768.xml">
 <!ENTITY rfc0793 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.0793.xml">
+<!ENTITY rfc3986 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.3986.xml">
 ]>
 <?xml-stylesheet type="text/xsl" href="rfc2629.xslt"?>
 
@@ -20,7 +21,7 @@
 <?rfc autobreaks="yes"?>
 <?rfc docmapping="yes"?>
 
-<rfc category="std" docName="draft-ietf-kitten-krb-service-discovery-00"
+<rfc category="std" docName="draft-ietf-kitten-krb-service-discovery-01"
      ipr="trust200902" updates="4120">
   <front>
     <title abbrev="Service Discovery">Kerberos Service Discovery using DNS</title>
@@ -71,13 +72,13 @@
     <workgroup>Internet Engineering Task Force</workgroup>
 
     <abstract>
-      <t>This document proposes defines a new mechanism for discovering Kerberos
+      <t>This document specifies a new mechanism for discovering Kerberos
       services using DNS. This new mechanism extends the mechanism already
       defined in <xref target="RFC4120">Kerberos V5</xref> and has four goals.
       First, reduce the number of DNS queries required to discover a Kerberos
       KDC. Second, provide DNS administrators more control over client behavior.
-      Third, provide support for discovery of the MS-KKDCP transport. Fourth,
-      define a discovery procedure for Kerberos password services.</t>
+      Third, provide support for discovery of the MS-KKDCP transport.  Fourth,
+      formally specify a discovery procedure for Kerberos Password services.</t>
     </abstract>
   </front>
 
@@ -99,8 +100,9 @@
       <xref target="RFC4120">Kerberos V5</xref>, inheriting the same drawbacks
       outlined above.</t>
 
-      <t>This RFC defines three new <xref target="RFC7553">URI DNS records</xref>;
-      one each for KDC, Kerberos Password, and Kerberos Admin service discovery.</t>
+      <t>This RFC defines two new <xref target="RFC7553">URI DNS</xref> records;
+        one for KDC service discovery and another for Kerberos Password service
+        discovery.</t>
     </section>
 
     <section title="Document Conventions">
@@ -117,134 +119,127 @@
       be followed.</t>
     </section>
 
-    <section title="Required URI Format">
-      <t>The following URI format MUST be supported by clients.</t>
-      <t>The URI format is comprised of text fields delimited by a colon
-	 (":") character.</t>
-
-      <t>krb5srv:[flags]:transport:residual</t>
-
-      <t>See the Appendix for examples.</t>
-
-      <section title="Scheme">
-	<t>This field identifies the URI scheme. Its value MUST be the string
-	"krb5srv".</t>
-      </section>
-
-      <section title="Flags">
-	<t>This field contains a sequence of zero or more case-insensitive
-	characters used individually to convey server attributes or feature support
-	(eg.  "XYZ" indicates support for features X, Y, and Z.) for the purpose of
-	organizing the lookup results.</t>
-
-        <t>This field MUST be present even when no flags are provided, appearing as
-	two colons seperating the scheme and transport fields (eg.
-	"krb5srv::tcp:host").</t>
-
-	<t>Flags are not considered critical, therefore flags that are not used or
-        unknown to the implementation SHOULD be ignored.</t>
-
-        <section title="Master Flag">
-          <t>The "m" flag signifies that the discovered server is a master server.
-          The client SHOULD consider this server as one that would immediately
-          see password changes and use it as a fallback for incorrect password
-          errors.</t>
-        </section>
-      </section>
-
-      <section title="Transport">
-	<t>This field contains a string to indicate the transport method to use
-	when contacting the host specified in the URI.</t>
-      </section>
-
-      <section title="Residual">
-	<t>This field contains information specific to the transport. It may
-	contain sub-fields where such are defined in the transport specification.
-	</t>
-      </section>
-
-    </section>
-
     <section title="Kerberos V5 KDC Service Discovery">
       <t>In order to discover a KDC service location, the client MUST query
-      the following <xref target="RFC7553">URI DNS</xref> record (REALM
-      indicates the translation of the Kerberos realm to a DNS domain):</t>
+      the following <xref target="RFC7553">URI DNS</xref> record,
+      where REALM is a domain-style realm name:</t>
 
       <t>_kerberos.REALM</t>
 
       <t>TTL, Class, URI, Priority, Weight and Target have the standard
       meanings as defined in <xref target="RFC2782">RFC 2782</xref> and the
       <xref target="RFC7553">URI DNS record type</xref>. Target SHOULD contain
-      one of the URI formats specified in this document.</t>
+      the URI format specified in this document.</t>
     </section>
 
     <section title="Kerberos Password Service Discovery">
       <t>In order to discover a password service location, the client MUST
-      query the following <xref target="RFC7553">URI DNS</xref> record (REALM
-      indicates the translation of the Kerberos realm to a DNS domain):</t>
+      query the following <xref target="RFC7553">URI DNS</xref>
+      record, where REALM is a domain-style realm name:</t>
 
       <t>_kpasswd.REALM</t>
 
       <t>TTL, Class, URI, Priority, Weight and Target have the standard
       meanings as defined in <xref target="RFC2782">RFC 2782</xref> and the
       <xref target="RFC7553">URI DNS record type</xref>. Target SHOULD contain
-      one of the URI formats specified in this document.</t>
+      the URI format specified in this document.</t>
     </section>
 
-    <section title="Kerberos Admin Service Discovery">
-      <t>In order to discover an admin service location, the client MUST
-      query the following <xref target="RFC7553">URI DNS</xref> record (REALM
-      indicates the translation of the Kerberos realm to a DNS domain):</t>
+    <section title="Required URI Format">
+      <t>The following URI format MUST be supported by clients.</t>
 
-      <t>_kerberos-adm.REALM</t>
+      <t>The URI format is comprised of ASCII text fields delimited by the colon
+        (":") character:</t>
 
-      <t>TTL, Class, URI, Priority, Weight and Target have the standard
-      meanings as defined in <xref target="RFC2782">RFC 2782</xref> and the
-      <xref target="RFC7553">URI DNS record type</xref>. Target SHOULD contain
-      one of the URI formats specified in this document.</t>
-    </section>
+      <t>krb5srv:[flags]:transport-type:transport-info</t>
+
+      <t>See <xref target="appendix" /> for examples.</t>
+
+      <section title="Scheme">
+        <t>The initial field identifies the URI scheme. It MUST be the string
+          value "krb5srv". It is recommended that implementations process this
+          field in a case-insensitive manner.</t>
+      </section>
+
+      <section title="Flags">
+        <t>This field contains a sequence of zero or more characters, used
+          individually to convey server attributes or feature support (e.g.,
+          "xyz" indicates support for features x, y, and z.) for the purpose of
+          organizing the lookup results. Implementations SHOULD process this
+          field in a case-insensitive manner.</t>
+
+        <t>This field MUST be present even when no flags are provided, appearing
+          as two colons separating the scheme and transport fields (e.g.,
+          "krb5srv::tcp:hostname").</t>
+
+        <t>Flag characters that are unused or unknown to the client SHOULD be
+          ignored.</t>
+
+        <t>Flag values SHOULD be registered with IANA under the Kerberos Server
+          Discovery Flags registry that is defined in this document. See <xref
+            target="iana" /> for the initially registered flags and information
+          on allocating new flags.</t>
+
+        <section anchor="mflag" title="Master Flag">
+          <t>The "m" flag indicates that the server is a "master". The
+            client SHOULD consider this server as one that might
+            possess more up-to-date long-term key material, and use it
+            as a fallback for errors that might result from
+            out-of-date keys.
+          </t>
+        </section>
+      </section>
+
+      <section title="Transport Type">
+        <t>This field contains a string value indicating the transport method to
+          use when contacting the server specified by the URI entry.
+          Implementations SHOULD process this field in a case-insensitive
+          manner.</t>
+
+        <t>Transport values SHOULD be registered with IANA under the Kerberos
+          Server Discovery Transport Types registry that is defined in this
+          document. See <xref target="iana" /> for the initially registered
+          transports and information on allocating new transport values.</t>
+      </section>
+
+      <section title="Transport Info">
+        <t>This field contains information specific to the transport. It may
+          contain sub-fields where such are defined in the transport
+          specification. The case-sensitivity of this field can vary between
+          sub-fields, so implementations SHOULD follow the case rules as defined
+          by the transport specification.</t> 
+
+        <t>In the case of a MS-KKDCP URL, the default virtual directory
+          "/KdcProxy" path extension MUST be specified in the URL and MUST NOT
+          be implicitly assumed by clients.</t>
+      </section>
+    </section> 
+
     <section title="Relationship to Existing Mechanism">
-      <t>If an existing discovery protocol is supported by a client, the client
-      SHOULD perform the URI lookup as defined in this document first. If no
-      URI record is found, the client MAY attempt discovery using another
-      protocol.</t>
+      <t>Clients that support service discovery through both URI and
+        SRV records MUST perform the URI discovery first. If no URI
+        record is found, the client MAY then attempt SRV discovery.</t>
     </section>
 
-    <section title="IANA Considerations">
-      <t>This document establishes two registries with the following
-      procedure, in accordance with <xref target="RFC5226"/>:</t>
-
-      <t>Registry entries are to be evaluated using the Specification Required
-      method.  All specifications must be be published prior to entry inclusion
-      in the registry.  There will be a three-week review period by Designated
-      Experts on the kitten@ietf.org mailing list.  Prior to the end of the
-      review, the Designated Experts must approve or deny the request.  This
-      decision is to be conveyed to both the IANA and the list, and should
-      include reasonably detailed explanation in the case of a denial as well as
-      whether the request can be resubmitted.</t>
+    <section anchor="iana" title="IANA Considerations">
+      <t>This document establishes two registries [to be] managed by IANA, in
+      accordance with <xref target="RFC5226"/>.</t>
 
       <section title="Kerberos Server Discovery Flags">
-	<t>This section species the IANA "Kerberos Server Discovery Flags"
-	registry.  This registry records the value and description for each
-	flag.</t>
+        <t>This section specifies the IANA "Kerberos Server Discovery Flags"
+          registry. New values SHOULD be registered according to the
+          "Specification Required" policy outlined in <xref target="RFC5226"/>.
+          This registry records the value, description, and a reference for each
+          flag.</t>
 
         <section title="Registration Template">
           <t>
             <list style="hanging">
-              <t hangText="Value:">
-		A single unique ASCII character that identifies the entry,
-		excluding the colon character (":") since it is used as a
-		field delimiter in the scheme outlined in this document.
-              </t>
-
-              <t hangText="Description:">
-		A brief description of the meaning of the value when it appears
-		in the flags field.
-              </t>
-
-              <t hangText="Reference:">
-		A reference to the details of the flag.
-              </t>
+              <t hangText="Value:">A single ASCII character in the range of a-z
+                that identifies the flag.</t>
+              <t hangText="Description:">The flag name.</t>
+              <t hangText="Reference:">A reference to the details of the
+                flag.</t>
             </list>
           </t>
         </section>
@@ -253,61 +248,41 @@
           <texttable style="none" align="left">
             <ttcol /><ttcol />
             <c>&#8226;</c><c>Value: m</c>
-            <c>&#8226;</c><c>Description: The target is a master server.</c>
-            <c>&#8226;</c><c>Reference: TBD</c>
+            <c>&#8226;</c><c>Description: Master flag</c>
+            <c>&#8226;</c><c>Reference: [This Document]</c>
           </texttable>
 
         </section>
       </section>
 
       <section title="Kerberos Server Discovery Transport Types">
-	<t>This section specifies the IANA "Kerberos Server Discovery
-	Transport Types" registry.  This registry records the value,
-	description, residual format, case-sensitive residual elements,
-        default ports, and a reference for each type.</t>
+        <t>This section specifies the IANA "Kerberos Server Discovery Transport
+          Types" registry.  New values are to be registered according to the
+          "Specification Required" policy outlined in <xref target="RFC5226"/>.
+          This registry records the value, description, transport-info format,
+          default ports, and a reference for each type.</t>
 
         <section title="Registration Template">
           <t>
             <list style="hanging">
-              <t hangText="Value:">
-                A unique value to identify the transport type within the
-		transport field.</t>
+              <t hangText="Value:">A unique ASCII string to identify the
+                transport within the transport-type field.</t>
 
-              <t hangText="Description:">
-		The name or description of the transport type.
-              </t>
+              <t hangText="Description:"> The transport name.</t>
 
-              <t hangText="Residual Format:">
-		The format of the residual field that specifies the discovered
-		target URL. Optional parts of the URL are enclosed in brackets.
-              </t>
+              <t hangText="Information Format:"> A description of the
+                transport-info format expected by the transport.</t>
 
-              <t hangText="Case Sensitive:">
-		If any part of the residual format is case-sensitive, it
-		is specified here.
-              </t>
+              <t hangText="Default KDC Port:"> A number in the range of 1-65535
+                as the port used to contact the target URL when no port is
+                specified and the lookup result is for a Kerberos server.</t>
+              <t hangText="Default Password Service Port:"> A number in the
+                range of 1-65535 as the port used to contact the target URL when
+                no port is specified and the lookup result is for a Kerberos
+                Password server.</t>
 
-              <t hangText="Default KDC Port:">
-		A number in the range of 1-65535 as the port used
-		to contact the target URL when no port is specified and the
-		lookup result is for a Kerberos server.
-              </t>
-
-              <t hangText="Default Admin Service Port:">
-		A number in the range of 1-65535 as the port used
-		to contact the target URL when no port is specified and the
-		lookup result is for a Kerberos Admin server.
-              </t>
-
-              <t hangText="Default Password Service Port:">
-		A number in the range of 1-65535 as the port used
-		to contact the target URL when no port is specified and the
-		lookup result is for a Kerberos Password server.
-              </t>
-
-              <t hangText="Reference:">
-		A reference to the details of the transport type.
-              </t>
+              <t hangText="Reference:">A reference to the details of the
+                transport type.</t>
             </list>
           </t>
         </section>
@@ -317,52 +292,58 @@
             <ttcol /><ttcol />
             <c>&#8226;</c><c>Value: "udp"</c>
             <c>&#8226;</c><c>Description: User Datagram Protocol</c>
-            <c>&#8226;</c><c>Residual Format: "host[:port]"</c>
-            <c>&#8226;</c><c>Case Sensitive: None</c>
+            <c>&#8226;</c><c>Information Format: An IPv4 or IPv6 address or
+              hostname, with an optional port extension.</c>
             <c>&#8226;</c><c>Default KDC Port: 88</c>
-            <c>&#8226;</c><c>Default Admin Service Port: 749</c>
             <c>&#8226;</c><c>Default Password Service Port: 464</c>
-	    <c>&#8226;</c><c>Reference: <xref target="RFC0768"/></c>
+	          <c>&#8226;</c><c>Reference: <xref target="RFC0768"/></c>
           </texttable>
 
           <texttable style="none" align="left">
             <ttcol /><ttcol />
             <c>&#8226;</c><c>Value: "tcp"</c>
             <c>&#8226;</c><c>Description: Transport Control Protocol</c>
-            <c>&#8226;</c><c>Residual Format: "host[:port]"</c>
-            <c>&#8226;</c><c>Case Sensitive: None</c>
+            <c>&#8226;</c><c>Information Format: An IPv4 or IPv6 address or
+              hostname, with an optional port extension.</c>
             <c>&#8226;</c><c>Default KDC Port: 88</c>
-            <c>&#8226;</c><c>Default Admin Service Port: 749</c>
             <c>&#8226;</c><c>Default Password Service Port: 464</c>
-	    <c>&#8226;</c><c>Reference: <xref target="RFC0793"/></c>
+	          <c>&#8226;</c><c>Reference: <xref target="RFC0793"/></c>
           </texttable>
 
           <texttable style="none" align="left">
             <ttcol /><ttcol />
             <c>&#8226;</c><c>Value: "kkdcp"</c>
-	    <c>&#8226;</c><c>Description: Kerberos Key Distribution Center
-	    Proxy Protocol</c>
-            <c>&#8226;</c><c>Residual Format: https://host[:port][/path]</c>
-	    <c>&#8226;</c><c>Case Sensitive: [/path]</c>
+	          <c>&#8226;</c><c>Description: Kerberos Key Distribution Center Proxy Protocol</c>
+            <c>&#8226;</c><c>Information Format: A URL as specified by <xref target="MS-KKDCP"/>.</c>
             <c>&#8226;</c><c>Default KDC Port: 443</c>
-            <c>&#8226;</c><c>Default Admin Service Port: 443</c>
             <c>&#8226;</c><c>Default Password Service Port: 443</c>
-	    <c>&#8226;</c><c>Reference: <xref target="MS-KKDCP"/></c>
+	          <c>&#8226;</c><c>Reference: <xref target="MS-KKDCP"/></c>
           </texttable>
         </section>
 
       </section>
 
     </section>
-    <section title="Appendix">
+
+    <section title="Security Considerations">
+      <t>The MS-KKDCP transport operates over HTTPS, and as a result
+        provides confidentiality of the client and server principal
+        names. This added security benefit is diminished when using
+        insecure DNS to discover a MS-KKDCP server URL.</t>
+    </section>
+
+    <section anchor="appendix" title="Appendix">
       <section title="URI Format Examples">
-        <texttable style="none" align="left">
-          <ttcol /><ttcol />
-	  <c>&#8226;</c><c>krb5srv:m:kkdcp:https://kdc.example.com:8080/path</c>
-          <c>&#8226;</c><c>krb5srv:m:udp:kdc.example.com</c>
-          <c>&#8226;</c><c>krb5srv::kkdcp:https://kdc2.example.com/path</c>
-          <c>&#8226;</c><c>krb5srv::tcp:192.168.1.20:1000</c>
-        </texttable>
+        <t> <list style="letters">
+          <t>A MS-KKDCP entry for the master server kdc.example.com, specifying port 8080 and the standard MS-KKDCP path:
+            <vspace blankLines="1" /> krb5srv:m:kkdcp:https://kdc.example.com:8080/KdcProxy</t>
+          <t>A MS-KKDCP entry for kdc2.example.com, with the default port and a non-standard MS-KKDCP path:
+            <vspace blankLines="1" /> krb5srv::kkdcp:https://kdc2.example.com/path</t>
+          <t>A UDP entry for the master server kdc.example.com:
+            <vspace blankLines="1" /> krb5srv:m:udp:kdc.example.com</t>
+          <t>A TCP entry for 192.168.1.20 with port 1000:
+            <vspace blankLines="1" /> krb5srv::tcp:192.168.1.20:1000</t>
+      </list></t>
       </section>
     </section>
 
@@ -370,26 +351,26 @@
 
   <back>
 <?rfc rfcedstyle="no"?>
-    <references title="Normative References">
-      &rfc2119;
-      &rfc2782;
-      &rfc3244;
-      &rfc4120;
-      &rfc7553;
-      &rfc5226;
-      &rfc0768;
-      &rfc0793;
-
+    <references title="Informative References">
       <reference anchor="MS-KKDCP" target="http://msdn.microsoft.com/en-us/library/hh553774.aspx">
         <front>
           <title>[MS-KKDCP]: Kerberos Key Distribution Center (KDC) Proxy Protocol</title>
           <author>
             <organization>Microsoft</organization>
           </author>
-
           <date month="May" year="2014" />
         </front>
       </reference>
+    </references>
+    <references title="Normative References">
+      &rfc2119;
+      &rfc2782;
+      &rfc3244;
+      &rfc4120;
+      &rfc5226;
+      &rfc0768;
+      &rfc0793;
+      &rfc7553;
     </references>
 
 <?rfc rfcedstyle="yes"?>
@@ -401,6 +382,16 @@ Simo Sorce (Red Hat)
 Nico Williams (Cryptonector)
          ]]></artwork>
       </figure>
+    </section>
+    <section title="Notes to the RFC Editor">
+      <t>Before publication of this document as an RFC, the following
+        changes are needed:</t>
+      <t>Change the reference "[This Document]" in the Kerberos Server
+        Discovery Flags section to the RFC number of this
+        document.</t>
+      <t>Remove "[to be]" in the IANA Considerations section upon IANA
+        registration of both registries.</t>
+      <t>Delete this section.</t>
     </section>
   </back>
 </rfc>
