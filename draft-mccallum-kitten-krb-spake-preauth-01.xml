@@ -453,8 +453,11 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
         this optimization.</t>
 
         <t>Second, clients MAY skip the first pass and send an AS-REQ with a
-        PA-SPAKE PA-DATA element using the support choice. KDCs MUST support
-        this optimization.</t>
+        PA-SPAKE PA-DATA element using the support choice. The KDC MUST
+        include a PA-ETYPE-INFO2 value within the METHOD-DATA of the
+        KDC_ERR_MORE_PREAUTH_DATA_REQUIRED error response, as the client may
+        not otherwise be able to compute the initial reply key. KDCs MUST
+        support this optimization.</t>
       </section>
     </section>
 
@@ -472,10 +475,13 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
       <list style="numbers">
         <t>Determine the length of the multiplier octet string defined in the
         IANA "Kerberos SPAKE Groups" registry created by this document.</t>
-        <t>Produce an octet string of the above length using PRF+(K,
-        "SPAKEsecret"), where K is the initial reply key and PRF+ is defined
-        in <xref target="RFC6113"/> section 5.1.</t>
-        <t>Convert the octet array to a multiplier scalar using the multiplier
+        <t>Compose a pepper string by concatenating the string "SPAKEsecret"
+        and the group number a big-endian four-byte unsigned binary
+        number.</t>
+        <t>Produce an octet string of the required length using PRF+(K,
+        pepper), where K is the initial reply key and PRF+ is defined in <xref
+        target="RFC6113"/> section 5.1.</t>
+        <t>Convert the octet string to a multiplier scalar using the multiplier
         conversion method defined in the IANA "Kerberos SPAKE Groups" registry
         created by this document.</t>
       </list></t>
@@ -533,7 +539,11 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       <t>A PRF+ input string is assembled by concatenating the following
       values:
       <list style="symbols">
-        <t>The fixed string "SPAKEKey".</t>
+        <t>The fixed string "SPAKEkey".</t>
+        <t>The group number as a big-endian four-byte unsigned binary
+        number.</t>
+        <t>The encryption type of the initial reply key as a
+        big-endian four-byte unsigned binary number.</t>
         <t>The SPAKE result K, converted to an octet string as specified in
         <xref target="spakeparams"/>.</t>
         <t>The transcript checksum.</t>
