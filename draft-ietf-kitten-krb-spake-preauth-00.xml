@@ -58,25 +58,25 @@
       Kerberos protocol that uses a password authenticated key exchange. This
       document has three goals. First, increase the security of Kerberos
       pre-authentication exchanges by making offline brute-force attacks
-      infeasible.  Second, enable the use of secure second factor
-      authentication without relying on FAST. This is achived using the
-      existing trust relationship established by the shared first
-      factor. Third, make Kerberos pre-authentication more resilient against
-      time synchronization errors by removing the need to transfer an
-      encrypted timestamp from the client.
+      infeasible.  Second, enable the use of second factor authentication
+      without relying on FAST. This is achieved using the existing trust
+      relationship established by the shared first factor. Third, make
+      Kerberos pre-authentication more resilient against time synchronization
+      errors by removing the need to transfer an encrypted timestamp from the
+      client.
       </t>
     </abstract>
   </front>
 
   <middle>
     <section title="Introduction">
-      <t>The most widely deployed Kerberos pre-authentication method,
-      PA-ENC-TIMESTAMP, encrypts a timestamp in the client principal's
-      long-term secret. When a client uses this method, a passive attacker can
-      perform an offline brute-force attack against the transferred
-      ciphertext. When the client principal's long-term key is based on a
-      password, especially a weak password, offline dictionary attacks can
-      successfully recover the key.</t>
+      <t>When a client uses PA-ENC-TIMESTAMP (or similar schemes, or the KDC
+      does not require preauthentication), a passive attacker that observes
+      either the AS-REQ or AS-REP can perform an offline brute-force attack
+      against the transferred ciphertext.  When the client principal's
+      long-term key is based on a password, offline dictionary attacks can
+      successfuly recover the key, with only modest effort needed if the
+      password is weak.</t>
 
       <section title="Properties of PAKE">
         <t>Password authenticated key exchange (PAKE) algorithms provide
@@ -113,40 +113,41 @@
         <t>SPAKE is a variant of the technique used by DH-EKE which ensures
         that all public key encryption and decryption operations result in a
         member of the underlying group. This property allows SPAKE to be used
-        with elliptic curve cryptography, permitting the use of markedly
-        smaller key sizes with equivalent security to a finite-field
-        Diffie-Hellman key exchange. Additionally, SPAKE can complete the key
-        exchange in just a single round-trip. These properties make SPAKE an
-        ideal PAKE to use for Kerberos pre-authentication.</t>
+        with elliptic curve cryptography, which is believed to provide
+        equivalent security levels to finite-field DH key exchange at much
+        smaller key sizes. Additionally, SPAKE can complete the key exchange
+        in just a single round-trip. These properties make SPAKE an ideal PAKE
+        to use for Kerberos pre-authentication.</t>
       </section>
 
       <section title="PAKE and Two-Factor Authentication">
         <t>Using PAKE in a pre-authentication mechanism also has another
-        benefit when coupled with two-factor authentication (2FA). 2FA methods
-        often require the secure transfer of plaintext material to the KDC for
-        verification. This includes one-time passwords, challenge/response
-        signatures and biometric data. Attempting to encrypt this data using
-        the long-term secret results in packets that are vulnerable to offline
-        brute-force attack if either authenticated encryption is used or if
-        the plaintext is distinguishable from random data. This is a problem
-        that PAKE solves for first factor authentication. So a similar
-        technique can be used with PAKE to encrypt second-factor data.</t>
+        benefit when used as a component of two-factor authentication (2FA).
+        2FA methods often require the secure transfer of plaintext material to
+        the KDC for verification. This includes one-time passwords,
+        challenge/response signatures and biometric data. Attempting to
+        encrypt this data using the long-term secret results in packets that
+        are vulnerable to offline brute-force attack if either authenticated
+        encryption is used or if the plaintext is distinguishable from random
+        data. This is a problem that PAKE solves for first factor
+        authentication. So a similar technique can be used with PAKE to
+        encrypt second-factor data.</t>
 
         <t>In the OTP pre-authentication <xref target="RFC6560"/> specification,
-        this problem has been mitigated by using FAST, which uses a secondary
-        trust relationship to create a secure encryption channel within which
+        this problem is mitigated by using FAST, which uses a secondary trust
+        relationship to create a secure encryption channel within which
         pre-authentication data can be sent. However, the requirement for a
         secondary trust relationship has proven to be cumbersome to deploy and
         often introduces third parties into the trust chain (such as
         certification authorities). These requirements lead to a scenario
         where FAST cannot be enabled by default without sufficient
-        configuration. SPAKE pre-authentication, instead, can create a secure
-        encryption channel implicitly, using the key exchange to negotiate
-        a high-entropy encryption key. This key can then be used to securely
-        encrypt 2FA plaintext data without the need for a secondary trust
-        relationship. Further, if the second factor verifiers are sent at the
-        same time as the first factor verifier, and the KDC is careful to
-        prevent timing attacks, then an online brute-force attack cannot be
+        configuration. SPAKE pre-authentication, in contrast, can create a
+        secure encryption channel implicitly, using the key exchange to
+        negotiate a high-entropy encryption key. This key can then be used to
+        securely encrypt 2FA plaintext data without the need for a secondary
+        trust relationship. Further, if the second factor verifiers are sent
+        at the same time as the first factor verifier, and the KDC is careful
+        to prevent timing attacks, then an online brute-force attack cannot be
         used to attack the factors separately.</t>
 
         <t>For these reasons, this draft departs from the advice given in
@@ -172,10 +173,10 @@
         the case of this mechanism, verification happens implicitly by a
         successful decryption of the 2FA data.</t>
 
-        <t>This mechanism also provides its own method of deriving encryption
-        keys from the calculated shared secret K, for several reasons: to fit
+        <t>This mechanism provides its own method of deriving encryption keys
+        from the calculated shared secret K, for several reasons: to fit
         within the framework of <xref target="RFC3961"/>, to ensure
-        negotiation integrity using a transcript hash, to derive different
+        negotiation integrity using a transcript checksum, to derive different
         keys for each use, and to bind the KDC-REQ-BODY to the
         pre-authentication exchange.</t>
       </section>
@@ -200,7 +201,8 @@
       algorithm as "SPAKE". The normative reference for this algorithm is
       <xref target="I-D.irtf-cfrg-spake2"/>.</t>
       <t>The terms "ASN.1" and "DER" are defined in <xref
-      target="CCITT.X680.2002"/> and <xref target="CCITT.X690.2002"/>.</t>
+      target="CCITT.X680.2002"/> and <xref target="CCITT.X690.2002"/>
+      respectively.</t>
     </section>
 
     <section title="Prerequisites">
@@ -209,7 +211,8 @@
         contain a singular reply key. Therefore, a KDC which offers SPAKE
         pre-authentication as a stand-alone mechanism MUST supply a
         PA-ETYPE-INFO2 value containing a single ETYPE-INFO2-ENTRY, as
-        described in <xref target="RFC6113"/> section 2.1.</t>
+        described in <xref target="RFC6113"/> section 2.1. PA-ETYPE-INFO2 is
+        specified in <xref target="RFC4120"/> section 5.2.7.5.</t>
       </section>
 
       <section title="Cookie Support">
@@ -217,24 +220,27 @@
         mechanism for retaining state between AS-REQs. For stateless KDC
         implementations, this method will most commonly be an encrypted
         PA-FX-COOKIE. Clients which implement SPAKE pre-authentication MUST
-        support PA-FX-COOKIE.</t>
+        support PA-FX-COOKIE, as described in <xref target="RFC6113"/> section
+        5.2.</t>
       </section>
 
       <section title="More Pre-Authentication Data Required">
         <t>Both KDCs and clients which implement SPAKE pre-authentication MUST
-        support the use of KDC_ERR_MORE_PREAUTH_DATA_REQUIRED.</t>
+        support the use of KDC_ERR_MORE_PREAUTH_DATA_REQUIRED, as described in
+        <xref target="RFC6113"/> section 5.2.</t>
       </section>
     </section>
 
     <section title="SPAKE Pre-Authentication Message Protocol">
       <t>This mechanism uses the reply key and provides the Client
-      Authentication and Strengthening Reply Key pre-authentication
-      facilities. When the mechanism completes successfully, the client will
-      have proved knowledge of the original reply key and possibly a second
-      factor, and the reply key will be strengthened to a more uniform
-      distribution based on the PAKE exchange. This mechanism also ensures the
-      integrity of the KDC-REQ-BODY contents. This mechanism can be used in an
-      authentication set; no pa-hint value is required or defined.</t>
+      Authentication and Strengthening Reply Key pre-authentication facilities
+      (<xref target="RFC6113"/> section 3). When the mechanism completes
+      successfully, the client will have proved knowledge of the original
+      reply key and possibly a second factor, and the reply key will be
+      strengthened to a more uniform distribution based on the PAKE
+      exchange. This mechanism also ensures the integrity of the KDC-REQ-BODY
+      contents. This mechanism can be used in an authentication set; no
+      pa-hint value is required or defined.</t>
 
       <t>This section will describe the flow of messages when performing SPAKE
       pre-authentication. We will begin by explaining the most verbose version
@@ -269,8 +275,9 @@ PA-SPAKE ::= CHOICE {
         pre-authentication data. Upon receipt of this AS-REQ, a KDC which
         requires pre-authentication and supports SPAKE SHOULD reply with a
         KDC_ERR_PREAUTH_REQUIRED error, with METHOD-DATA containing an empty
-        PA-SPAKE PA-DATA element. This message indicates to the client that
-        the KDC supports SPAKE pre-authentication.</t>
+        PA-SPAKE PA-DATA element (possibly in addition to other PA-DATA
+        elements). This message indicates to the client that the KDC supports
+        SPAKE pre-authentication.</t>
       </section>
 
       <section title="Second Pass">
@@ -349,13 +356,13 @@ SPAKESecondFactor ::= SEQUENCE {
 
       <section title="Third Pass">
         <t>Upon receipt of the challenge message, the client will complete its
-        part of of the SPAKE process, resulting in the shared secret K.</t>
-
-        <t>Next, the client chooses one of the second factor types listed in the
-        factors field of the challenge message and gathers whatever data
-        is required for this second factor type; possibly using the challenge
-        data for this second factor type. Finally, the client sends an AS-REQ
-        containing a PA-SPAKE PA-DATA element using the response choice.</t>
+        part of of the SPAKE algorithm, generating a public key and computing
+        the shared secret K. The client will then choose one of the second
+        factor types listed in the factors field of the challenge message and
+        gather whatever data is required for the chosen second factor type,
+        possibly using the associated challenge data. Finally, the client will
+        send an AS-REQ containing a PA-SPAKE PA-DATA element using the
+        response choice.</t>
 
         <figure>
           <artwork><![CDATA[
@@ -367,8 +374,8 @@ SPAKEResponse ::= SEQUENCE {
 ]]></artwork>
         </figure>
 
-        <t>The client and KDC update the transcript checksum with the pubkey
-        value, and use the resulting checksum for all encryption key
+        <t>The client and KDC will update the transcript checksum with the
+        pubkey value, and use the resulting checksum for all encryption key
         derivations.</t>
 
         <t>The pubkey field indicates the client's public key generated using
@@ -448,7 +455,7 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
         the client, the client MUST skip to the third pass by issuing an
         AS-REQ with a PA-SPAKE message using the response choice. If the KDC's
         chosen group is not supported by the client, the client MUST
-        initialize and update the transcript hash with the KDC's challenge
+        initialize and update the transcript checksum with the KDC's challenge
         message, and then continue to the second pass. Clients MUST support
         this optimization.</t>
 
@@ -462,10 +469,9 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
     </section>
 
     <section title="SPAKE Parameters and Conversions" anchor="spakeparams">
-      <t>Group elements are converted to octet strings for the SPAKEChallenge
-      and SPAKEResponse pubkey fields and for key derivation using the
-      serialization method defined in the IANA "Kerberos SPAKE Groups"
-      registry created by this document.</t>
+      <t>Group elements are converted to octet strings using the serialization
+      method defined in the IANA "Kerberos SPAKE Groups" registry created by
+      this document.</t>
       <t>The SPAKE algorithm requires constants M and N for each group. These
       constants are defined in the IANA "Kerberos SPAKE Groups" registry
       created by this document.</t>
@@ -473,10 +479,11 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
       scalar multiplier (see <xref target="I-D.irtf-cfrg-spake2"/> section
       2). This value MUST be produced from the initial reply key as follows:
       <list style="numbers">
-        <t>Determine the length of the multiplier octet string defined in the
-        IANA "Kerberos SPAKE Groups" registry created by this document.</t>
+        <t>Determine the length of the multiplier octet string as defined in
+        the IANA "Kerberos SPAKE Groups" registry created by this
+        document.</t>
         <t>Compose a pepper string by concatenating the string "SPAKEsecret"
-        and the group number a big-endian four-byte unsigned binary
+        and the group number as a big-endian four-byte unsigned binary
         number.</t>
         <t>Produce an octet string of the required length using PRF+(K,
         pepper), where K is the initial reply key and PRF+ is defined in <xref
@@ -495,7 +502,8 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
     <section title="Transcript Checksum" anchor="tcksum">
       <t>The transcript checksum is an octet string of length equal to the
       output length of the required checksum type of the encryption type of
-      the initial reply key. It initially contains all zero values.</t>
+      the initial reply key. The initial value consists of all bits set to
+      zero.</t>
 
       <t>When the transcript checksum is updated with an octet string input,
       the new value is the get_mic result computed over the concatenation of
@@ -509,7 +517,8 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
       challenge message, and finally with the client's pubkey value. It
       therefore incorporates the client's supported groups, the KDC's chosen
       group, the KDC's initial second-factor messages, and the client and KDC
-      public values.</t>
+      public values. Once the transcript checksum is finalized, it is used
+      without change for all key derivations (<xref target="keyderiv"/>).</t>
 
       <t>If the first optimization described in <xref target="optimizations"/>
       is used successfully, the transcript checksum is updated only with the
@@ -613,8 +622,9 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       a failure to properly derive the encryption keys will result in a
       situation where the risk of compromise is non-negligible.</t>
 
-      <t>Weak checksums present a risk to the transcript hash. Any etype with
-      a checksum based on one of the following algorithms MUST NOT be used:
+      <t>Weak checksums present a risk to the transcript checksum. Any etype
+      with a checksum based on one of the following algorithms MUST NOT be
+      used:
       <list style="symbols">
         <t>CRC32</t>
         <t>MD4</t>
@@ -622,7 +632,9 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       </list></t>
 
       <t>Both the size of the EncryptedData and the number of EncryptedData
-      messages may reveal information about the second factor used in an
+      messages used for second-factor data (including the factor field of the
+      SPAKEResponse message and messages using the encdata PA-SPAKE choice)
+      may reveal information about the second factor used in an
       authentication. Care should be taken to keep second factor messages as
       small and as few as possible.</t>
 
@@ -681,15 +693,14 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       denial of service attacks.</t>
 
       <t>The selected group's resistance to offline brute-force attacks may
-      not correspond to the brute-force resistance of the secret key
-      encryption type. For performance reasons, a KDC MAY select a group whose
-      brute-force resistance is weaker than the secret key. A passive attacker
-      who solves the group discrete logarithm problem after the exchange will
-      be able to conduct an offline attack against the client long-term
-      key. Although the use of password policies and costly, salted
-      string-to-key functions may increase the cost of such an attack, the
-      resulting cost will likely not be higher than the cost of solving the
-      group discrete logarithm.</t>
+      not correspond to the size of the reply key. For performance reasons, a
+      KDC MAY select a group whose brute-force work factor is less than the
+      reply key length. A passive attacker who solves the group discrete
+      logarithm problem after the exchange will be able to conduct an offline
+      attack against the client long-term key. Although the use of password
+      policies and costly, salted string-to-key functions may increase the
+      cost of such an attack, the resulting cost will likely not be higher
+      than the cost of solving the group discrete logarithm.</t>
 
       <t>This mechanism does not directly provide the KDC Authentication
       pre-authentication facility, because it does not send a key confirmation
@@ -726,10 +737,11 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
       method.  All specifications must be be published prior to entry
       inclusion in the registry.  There will be a three-week review period by
       Designated Experts on the krb5-spake-review@ietf.org mailing list.
-      Prior to the end of the review, the Designated Experts must approve or
-      deny the request.  This decision is to be conveyed to both the IANA and
-      the list, and should include reasonably detailed explanation in the case
-      of a denial as well as whether the request can be resubmitted.</t>
+      Prior to the end of the review period, the Designated Experts must
+      approve or deny the request. This decision is to be conveyed to both the
+      IANA and the list, and should include reasonably detailed explanation in
+      the case of a denial as well as whether the request can be
+      resubmitted.</t>
 
       <section title="Kerberos Second Factor Types">
         <t>This section species the IANA "Kerberos Second Factor Types"
