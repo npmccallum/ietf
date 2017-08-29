@@ -397,8 +397,8 @@ SPAKEResponse ::= SEQUENCE {
         use the pubkey to compute the SPAKE result, derive K'[1], and decrypt
         the factors field. If decryption is successful, the first factor is
         successfully validated. The KDC then validates the second factor. If
-        either factor fails to validate, the KDC responds with an appropriate
-        KRB-ERROR message.</t>
+        either factor fails to validate, the KDC SHOULD respond with an
+        appropriate KRB-ERROR message.</t>
 
         <t>If validation of the second factor requires further round-trips, the
         KDC MUST reply to the client with KDC_ERR_MORE_PREAUTH_DATA_REQUIRED
@@ -545,8 +545,7 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       slightly from the method used to generate K' in Section 3 of <xref
       target="I-D.irtf-cfrg-spake2">SPAKE</xref>.</t>
 
-      <t>A PRF+ input string is assembled by concatenating the following
-      values:
+      <t>An input string is assembled by concatenating the following values:
       <list style="symbols">
         <t>The fixed string "SPAKEkey".</t>
         <t>The group number as a big-endian four-byte unsigned binary
