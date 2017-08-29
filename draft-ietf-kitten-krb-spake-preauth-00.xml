@@ -617,10 +617,6 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       the same amount of time, and make the same observable communications to
       other servers.</t>
 
-      <t>Given that each EncryptedData will begin a new encryption context,
-      a failure to properly derive the encryption keys will result in a
-      situation where the risk of compromise is non-negligible.</t>
-
       <t>Weak checksums present a risk to the transcript checksum. Any etype
       with a checksum based on one of the following algorithms MUST NOT be
       used:
