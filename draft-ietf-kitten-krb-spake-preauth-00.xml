@@ -740,8 +740,8 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
 
       <section title="Kerberos Second Factor Types">
         <t>This section species the IANA "Kerberos Second Factor Types"
-        registry.  This registry records the number, name, implementation
-        requirements and reference for each second factor protocol.</t>
+        registry.  This registry records the number, name, and reference for
+        each second factor protocol.</t>
 
         <section title="Registration Template">
           <t>
@@ -760,12 +760,6 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
                 Brief, unique, human-readable name for this algorithm.
               </t>
 
-              <t hangText="Implementation Requirements:">
-                The second factor implementation requirements, which must be
-                one of the words Required, Recommended, Optional, Deprecated,
-                or Prohibited.
-              </t>
-
               <t hangText="Reference:">
                 URI or otherwise unique identifier for where the details of
                 this algorithm can be found.  It should be as specific as
@@ -780,7 +774,6 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
             <ttcol /><ttcol />
             <c>&#8226;</c><c>ID Number: 1</c>
             <c>&#8226;</c><c>Name: NONE</c>
-            <c>&#8226;</c><c>Implementation Requirements: Required</c>
             <c>&#8226;</c><c>Reference: this draft.</c>
           </texttable>
         </section>
@@ -788,9 +781,9 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
 
       <section title="Kerberos SPAKE Groups">
         <t>This section specifies the IANA "Kerberos SPAKE Groups" registry.
-        This registry records the number, name, implementation requirements,
-        specification, serialization, multiplier length, multiplier conversion,
-        SPAKE M constant and SPAKE N constant.</t>
+        This registry records the number, name, specification, serialization,
+        multiplier length, multiplier conversion, SPAKE M constant and SPAKE N
+        constant.</t>
 
         <section title="Registration Template">
           <t>
@@ -807,11 +800,6 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
 
               <t hangText="Name:">
                 Brief, unique, human readable name for this entry.
-              </t>
-
-              <t hangText="Implementation Requirements:">
-                The group implementation requirements, which must be one of the
-                words Required, Recommended, Optional, Deprecated, or Prohibited.
               </t>
 
               <t hangText="Specification:">
@@ -848,7 +836,6 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
             <ttcol /><ttcol />
             <c>&#8226;</c><c>ID Number: 1</c>
             <c>&#8226;</c><c>Name: P-256</c>
-            <c>&#8226;</c><c>Implementation Requirements: Required</c>
             <c>&#8226;</c><c>Specification: <xref target="SEC2"/> section 2.4.2</c>
             <c>&#8226;</c><c>Serialization: <xref target="SEC1"/> section 2.3.3 (compressed).</c>
             <c>&#8226;</c><c>Multiplier Length: 32</c>
@@ -861,7 +848,6 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
             <ttcol /><ttcol />
             <c>&#8226;</c><c>ID Number: 2</c>
             <c>&#8226;</c><c>Name: P-384</c>
-            <c>&#8226;</c><c>Implementation Requirements: Optional</c>
             <c>&#8226;</c><c>Specification: <xref target="SEC2"/> section 2.5.1</c>
             <c>&#8226;</c><c>Serialization: <xref target="SEC1"/> section 2.3.3 (compressed).</c>
             <c>&#8226;</c><c>Multiplier Length: 48</c>
@@ -878,7 +864,6 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
             <ttcol /><ttcol />
             <c>&#8226;</c><c>ID Number: 3</c>
             <c>&#8226;</c><c>Name: P-521</c>
-            <c>&#8226;</c><c>Implementation Requirements: Optional</c>
             <c>&#8226;</c><c>Specification: <xref target="SEC2"/> section 2.6.1</c>
             <c>&#8226;</c><c>Serialization: <xref target="SEC1"/> section 2.3.3 (compressed).</c>
             <c>&#8226;</c><c>Multiplier Length: 66</c>
