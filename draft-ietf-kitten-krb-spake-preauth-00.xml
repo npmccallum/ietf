@@ -496,7 +496,7 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
       secret scalar value y. As required by the SPAKE algorithm, these values
       are chosen randomly and uniformly. The KDC and client MUST NOT reuse x
       or y values for authentications involving different initial reply
-      keys.</t>
+      keys (see <xref target="kdcstate"/>).</t>
     </section>
 
     <section title="Transcript Checksum" anchor="tcksum">
@@ -581,137 +581,154 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
       <t>All of the security considerations from
       <xref target="I-D.irtf-cfrg-spake2">SPAKE</xref> apply here as well.</t>
 
-      <t>This mechanism includes unauthenticated plaintext in the support and
-      challenge messages. Beginning with the third pass, the integrity of this
-      plaintext is ensured by incorporating the transcript checksum into the
-      derivation of the final reply key and second factor encryption
-      keys. Downgrade attacks on support and challenge messages will result in
-      the client and KDC deriving different reply keys and EncryptedData
-      keys. The KDC-REQ-BODY contents are also incorporated into key
-      derivation, ensuring their integrity. The unauthenticated plaintext in
-      the KDC-REP message is not protected by this mechanism.</t>
+      <section title="Unauthenticated Plaintext">
+	<t>This mechanism includes unauthenticated plaintext in the support and
+	challenge messages. Beginning with the third pass, the integrity of
+	this plaintext is ensured by incorporating the transcript checksum into
+	the derivation of the final reply key and second factor encryption
+	keys. Downgrade attacks on support and challenge messages will result
+	in the client and KDC deriving different reply keys and EncryptedData
+	keys. The KDC-REQ-BODY contents are also incorporated into key
+	derivation, ensuring their integrity. The unauthenticated plaintext in
+	the KDC-REP message is not protected by this mechanism.</t>
 
-      <t>Unless FAST is used, the factors field of a challenge message is not
-      integrity-protected until the response is verified. Second factor types
-      MUST account for this when specifying the semantics of the data
-      field. Second factor data in the challenge should not be included in
-      user prompts, as it could be modified by an attacker to contain
-      misleading or offensive information.</t>
+	<t>Unless FAST is used, the factors field of a challenge message is not
+	integrity-protected until the response is verified. Second factor types
+	MUST account for this when specifying the semantics of the data
+	field. Second factor data in the challenge should not be included in
+	user prompts, as it could be modified by an attacker to contain
+	misleading or offensive information.</t>
 
-      <t>Subsequent factor data, including the data in the response, are
-      encrypted in a derivative of the shared secret K. Therefore, it is not
-      possible to exploit the untrustworthiness of challenge to turn the
-      client into an encryption or signing oracle, unless the attacker knows
-      the client's long-term key.</t>
+	<t>Subsequent factor data, including the data in the response, are
+	encrypted in a derivative of the shared secret K. Therefore, it is not
+	possible to exploit the untrustworthiness of challenge to turn the
+	client into an encryption or signing oracle, unless the attacker knows
+	the client's long-term key.</t>
+      </section>
 
-      <t>An implementation of this pre-authentication mechanism can have the
-      property of indistinguishability, meaning that an attacker who guesses a
-      long-term key and a second factor value cannot determine whether one of
-      the factors was correct unless both are correct. Indistinguishability is
-      only maintained if the second factor can be validated solely based on the
-      data in the response; the use of additional round trips will reveal
-      to the attacker whether the long-term key is correct.
-      Indistinguishability also requires that there are no side channels. When
-      processing a response message, whether or not the KDC successfully
-      decrypts the factor field, it must reply with the same error fields, take
-      the same amount of time, and make the same observable communications to
-      other servers.</t>
+      <section title="Side Channels">
+	<t>An implementation of this pre-authentication mechanism can have the
+	property of indistinguishability, meaning that an attacker who guesses
+	a long-term key and a second factor value cannot determine whether one
+	of the factors was correct unless both are
+	correct. Indistinguishability is only maintained if the second factor
+	can be validated solely based on the data in the response; the use of
+	additional round trips will reveal to the attacker whether the
+	long-term key is correct.  Indistinguishability also requires that
+	there are no side channels. When processing a response message, whether
+	or not the KDC successfully decrypts the factor field, it must reply
+	with the same error fields, take the same amount of time, and make the
+	same observable communications to other servers.</t>
 
-      <t>Weak checksums present a risk to the transcript checksum. Any etype
-      with a checksum based on one of the following algorithms MUST NOT be
-      used:
-      <list style="symbols">
-        <t>CRC32</t>
-        <t>MD4</t>
-        <t>MD5</t>
-      </list></t>
+	<t>Both the size of the EncryptedData and the number of EncryptedData
+	messages used for second-factor data (including the factor field of the
+	SPAKEResponse message and messages using the encdata PA-SPAKE choice)
+	may reveal information about the second factor used in an
+	authentication. Care should be taken to keep second factor messages as
+	small and as few as possible.</t>
 
-      <t>Both the size of the EncryptedData and the number of EncryptedData
-      messages used for second-factor data (including the factor field of the
-      SPAKEResponse message and messages using the encdata PA-SPAKE choice)
-      may reveal information about the second factor used in an
-      authentication. Care should be taken to keep second factor messages as
-      small and as few as possible.</t>
+	<t>Any side channels in the creation of the shared secret input w, or
+	in the multiplications wM and wN, could allow an attacker to recover
+	the client long-term key. Implementations MUST take care to avoid side
+	channels, particularly timing channels. Generation of the secret scalar
+	values x and y need not take constant time, but the amount of time
+	taken MUST NOT provide information about the resulting value.</t>
 
-      <t>A stateless KDC implementation generally must use a PA-FX-COOKIE
-      value to remember its private scalar value x and the transcript
-      checksum. The KDC MUST maintain confidentiality and integrity of the
-      cookie value, perhaps by encrypting it in a key known only to the
-      realm's KDCs. Cookie values may be replayed by attackers. The KDC SHOULD
-      limit the time window of replays using a timestamp, and SHOULD prevent
-      cookie values from being applied to other pre-authentication mechanisms
-      or other client principals. Within the validity period of a cookie, an
-      attacker can replay the final message of a pre-authentication exchange
-      to any of the realm's KDCs and make it appear that the client has
-      authenticated.</t>
+	<t>The conversion of the scalar multiplier for the SPAKE w parameter
+	may produce a multiplier that is larger than the order of the group.
+	Some group implementations may be unable to handle such a multiplier.
+	Others may silently accept such a multiplier, but proceed to perform
+	multiplication that is not constant time. This is a minor risk in all
+	known groups, but is a major risk for P-521 due to the extra seven high
+	bits in the input octet string. A common solution to this problem is
+	achieved by reducing the multiplier modulo the group order, taking care
+	to ensure constant time operation.</t>
+      </section>
 
-      <t>Any side channels in the creation of the shared secret input w, or in
-      the multiplications wM and wN, could allow an attacker to recover the
-      client long-term key. Implementations MUST take care to avoid side
-      channels, particularly timing channels. Generation of the secret scalar
-      values x and y need not take constant time, but the amount of time taken
-      MUST NOT provide information about the resulting value.</t>
+      <section title="KDC State" anchor="kdcstate">
+	<t>A stateless KDC implementation generally must use a PA-FX-COOKIE
+	value to remember its private scalar value x and the transcript
+	checksum. The KDC MUST maintain confidentiality and integrity of the
+	cookie value, perhaps by encrypting it in a key known only to the
+	realm's KDCs. Cookie values may be replayed by attackers. The KDC
+	SHOULD limit the time window of replays using a timestamp, and SHOULD
+	prevent cookie values from being applied to other pre-authentication
+	mechanisms or other client principals. Within the validity period of a
+	cookie, an attacker can replay the final message of a
+	pre-authentication exchange to any of the realm's KDCs and make it
+	appear that the client has authenticated.</t>
 
-      <t>If an x or y value is reused for pre-authentications involving two
-      different client long-term keys, an attacker who observes both
-      authentications and knows one of the long-term keys can conduct an
-      offline dictionary attack to recover the other one.</t>
+	<t>If an x or y value is reused for pre-authentications involving two
+	different client long-term keys, an attacker who observes both
+	authentications and knows one of the long-term keys can conduct an
+	offline dictionary attack to recover the other one.</t>
 
-      <t>This pre-authentication mechanism is not designed to provide forward
-      secrecy. Nevertheless, some measure of forward secrecy may result
-      depending on implementation choices. A passive attacker who determines
-      the client long-term key after the exchange generally will not be able
-      to recover the ticket session key; however, an attacker who also
-      determines the PA-FX-COOKIE encryption key (if the KDC uses an encrypted
-      cookie) will be able to recover the ticket session key. The KDC can
-      mitigate this risk by periodically rotating the cookie encryption
-      key. If the KDC or client retains the x or y value for reuse with the
-      same client long-term key, an attacker who recovers the x or y value and
-      the long-term key will be able to recover the ticket session key.</t>
+	<t>This pre-authentication mechanism is not designed to provide forward
+	secrecy. Nevertheless, some measure of forward secrecy may result
+	depending on implementation choices. A passive attacker who determines
+	the client long-term key after the exchange generally will not be able
+	to recover the ticket session key; however, an attacker who also
+	determines the PA-FX-COOKIE encryption key (if the KDC uses an
+	encrypted cookie) will be able to recover the ticket session key. The
+	KDC can mitigate this risk by periodically rotating the cookie
+	encryption key. If the KDC or client retains the x or y value for reuse
+	with the same client long-term key, an attacker who recovers the x or y
+	value and the long-term key will be able to recover the ticket session
+	key.</t>
+      </section>
 
-      <t>Although this pre-authentication mechanism is designed to prevent an
-      offline dictionary attack by an active attacker posing as the KDC, such
-      an attacker can attempt to downgrade the client to encrypted
-      timestamp. Client implementations SHOULD provide a configuration option
-      to disable encrypted timestamp on a per-realm basis to mitigate this
-      attack.</t>
+      <section title="Dictionary Attacks">
+	<t>Although this pre-authentication mechanism is designed to prevent an
+	offline dictionary attack by an active attacker posing as the KDC, such
+	an attacker can attempt to downgrade the client to encrypted
+	timestamp. Client implementations SHOULD provide a configuration option
+	to disable encrypted timestamp on a per-realm basis to mitigate this
+	attack.</t>
 
-      <t>Like any other pre-authentication mechanism using the client
-      long-term key, this pre-authentication mechanism does not prevent online
-      password guessing attacks. The KDC is made aware of unsuccessful
-      guesses, and can apply facilities such as password lockout to mitigate
-      the risk of online attacks.</t>
+	<t>Like any other pre-authentication mechanism using the client
+	long-term key, this pre-authentication mechanism does not prevent
+	online password guessing attacks. The KDC is made aware of unsuccessful
+	guesses, and can apply facilities such as password lockout to mitigate
+	the risk of online attacks.</t>
+      </section>
 
-      <t>Elliptic curve group operations are more computationally expensive
-      than secret-key operations. As a result, the use of this mechanism may
-      affect the KDC's performance under normal load and its resistance to
-      denial of service attacks.</t>
+      <section title="Brute Force Attacks">
+	<t>The selected group's resistance to offline brute-force attacks may
+	not correspond to the size of the reply key. For performance reasons, a
+	KDC MAY select a group whose brute-force work factor is less than the
+	reply key length. A passive attacker who solves the group discrete
+	logarithm problem after the exchange will be able to conduct an offline
+	attack against the client long-term key. Although the use of password
+	policies and costly, salted string-to-key functions may increase the
+	cost of such an attack, the resulting cost will likely not be higher
+	than the cost of solving the group discrete logarithm.</t>
+      </section>
 
-      <t>The selected group's resistance to offline brute-force attacks may
-      not correspond to the size of the reply key. For performance reasons, a
-      KDC MAY select a group whose brute-force work factor is less than the
-      reply key length. A passive attacker who solves the group discrete
-      logarithm problem after the exchange will be able to conduct an offline
-      attack against the client long-term key. Although the use of password
-      policies and costly, salted string-to-key functions may increase the
-      cost of such an attack, the resulting cost will likely not be higher
-      than the cost of solving the group discrete logarithm.</t>
+      <section title="Denial of Service Attacks">
+	<t>Elliptic curve group operations are more computationally expensive
+	than secret-key operations. As a result, the use of this mechanism may
+	affect the KDC's performance under normal load and its resistance to
+	denial of service attacks.</t>
+      </section>
 
-      <t>This mechanism does not directly provide the KDC Authentication
-      pre-authentication facility, because it does not send a key confirmation
-      from the KDC to the client. When used as a stand-alone mechanism, the
-      traditional KDC authentication provided by the KDC-REP enc-part still
-      applies.</t>
+      <section title="Weak Checksums">
+	<t>Weak checksums present a risk to the transcript checksum. Any etype
+	with a checksum based on one of the following algorithms MUST NOT be
+	used:
+	<list style="symbols">
+          <t>CRC32</t>
+          <t>MD4</t>
+          <t>MD5</t>
+	</list></t>
+      </section>
 
-      <t>The conversion of the scalar multiplier for the SPAKE w parameter
-      may produce a multiplier that is larger than the order of the group.
-      Some group implementations may be unable to handle such a multiplier.
-      Others may silently accept such a multiplier, but proceed to perform
-      multiplication that is not constant time. This is a minor risk in all
-      known groups, but is a major risk for P-521 due to the extra seven
-      high bits in the input octet string. A common solution to this problem
-      is achieved by reducing the multiplier modulo the group order, taking
-      care to ensure constant time operation.</t>
+      <section title="KDC Authentication">
+	<t>This mechanism does not directly provide the KDC Authentication
+	pre-authentication facility, because it does not send a key
+	confirmation from the KDC to the client. When used as a stand-alone
+	mechanism, the traditional KDC authentication provided by the KDC-REP
+	enc-part still applies.</t>
+      </section>
     </section>
 
     <section title="Assigned Constants">
