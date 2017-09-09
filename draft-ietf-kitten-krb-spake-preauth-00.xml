@@ -86,7 +86,6 @@
           <t>Each side of the exchange contributes entropy.</t>
           <t>Passive attackers cannot determine the shared key.</t>
           <t>Active attackers cannot perform a man-in-the-middle attack.</t>
-          <t>Either side can store a password or password equivalent.</t>
         </list></t>
 
         <t>These properties of PAKE allow us to establish high-entropy
@@ -94,30 +93,20 @@
         the passwords used are weak (low-entropy).</t>
       </section>
 
-      <section title="Which PAKE?">
-        <t>Diffie-Hellman Encrypted Key Exchange (DH-EKE) is the earliest
-        widely deployed PAKE. It works by encrypting the public keys of a
-        Diffie-Hellman key exchange with a shared secret. However, it
-        requires both that unauthenticated encryption be used and that the
-        public keys be indistinguishable from random data. This last
-        requirement makes it impossible to use this form of PAKE with elliptic
-        curve cryptography. For these reasons, DH-EKE is not a good fit.</t>
-
-        <t>Password authenticated key exchange by juggling (JPAKE) permits
-        the use of elliptic curve cryptography. However, it too has drawbacks.
-        First, the additional computation required for the algorithm makes
-        it resource intensive for servers under load. Second, it requires an
-        additional network round-trip, increasing latency and load on the
-        network.</t>
-
-        <t>SPAKE is a variant of the technique used by DH-EKE which ensures
-        that all public key encryption and decryption operations result in a
-        member of the underlying group. This property allows SPAKE to be used
-        with elliptic curve cryptography, which is believed to provide
-        equivalent security levels to finite-field DH key exchange at much
-        smaller key sizes. Additionally, SPAKE can complete the key exchange
-        in just a single round-trip. These properties make SPAKE an ideal PAKE
-        to use for Kerberos pre-authentication.</t>
+      <section title="PAKE Algorithm Selection">
+        <t>The SPAKE algorithm works by encrypting the public keys of a
+        Diffie-Hellman key exchange with a shared secret.  SPAKE was selected
+        for this pre-authentication mechanism for the following properties:
+        <list style="numbers">
+          <t>Because SPAKE's encryption method ensures that the result is a
+          member of the underlying group, it can be used with elliptic curve
+          cryptography, which is believed to provide equivalent security levels
+          to finite-field DH key exchange at much smaller key sizes.</t>
+          <t>It can compute the shared key after just one message from each
+          party.</t>
+          <t>It requires a small number of group operations, and can therefore
+          be implemented simply and efficiently.</t>
+        </list></t>
       </section>
 
       <section title="PAKE and Two-Factor Authentication">
