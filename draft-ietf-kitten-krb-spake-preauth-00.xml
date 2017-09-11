@@ -711,15 +711,13 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
 	denial of service attacks.</t>
       </section>
 
-      <section title="Weak Checksums">
-	<t>Weak checksums present a risk to the transcript checksum. Any etype
-	with a checksum based on one of the following algorithms MUST NOT be
-	used:
-	<list style="symbols">
-          <t>CRC32</t>
-          <t>MD4</t>
-          <t>MD5</t>
-	</list></t>
+      <section title="Reply-Key Encryption Type">
+	<t>This mechanism does not upgrade the encryption type of the initial
+	reply key, and relies on that encryption type for confidentiality,
+	integrity, and pseudo-random functions. If the client long-term key
+	uses a weak encryption type, an attacker might be able to subvert the
+	exchange, and the replaced reply key will also be of the same weak
+	encryption type.</t>
       </section>
 
       <section title="KDC Authentication">
