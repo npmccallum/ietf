@@ -6,7 +6,10 @@
 <!ENTITY rfc6113 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6113.xml">
 <!ENTITY rfc4120 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.4120.xml">
 <!ENTITY rfc5226 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.5226.xml">
+<!ENTITY rfc6234 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6234.xml">
 <!ENTITY rfc6560 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.6560.xml">
+<!ENTITY rfc7748 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.7748.xml">
+<!ENTITY rfc8032 SYSTEM "http://xml.resource.org/public/rfc/bibxml/reference.RFC.8032.xml">
 <!ENTITY spake SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-irtf-cfrg-spake2-01.xml">
 <!ENTITY CCITT.X680.2002 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml2/reference.CCITT.X680.2002.xml">
 <!ENTITY CCITT.X690.2002 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml2/reference.CCITT.X690.2002.xml">
@@ -241,6 +244,11 @@
       exchange. This mechanism also ensures the integrity of the KDC-REQ-BODY
       contents. This mechanism can be used in an authentication set; no
       pa-hint value is required or defined.</t>
+
+      <t>This mechanism negotiates a choice of group for the SPAKE algorithm.
+      Groups are defined in the IANA "Kerberos SPAKE Groups" registry created
+      by this document. Clients and KDCs MUST implement the edwards25519
+      group, but MAY choose not to offer or accept it by default.</t>
 
       <t>This section will describe the flow of messages when performing SPAKE
       pre-authentication. We will begin by explaining the most verbose version
@@ -835,6 +843,18 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
           <texttable style="none" align="left">
             <ttcol /><ttcol />
             <c>&#8226;</c><c>ID Number: 1</c>
+            <c>&#8226;</c><c>Name: edwards25519</c>
+            <c>&#8226;</c><c>Specification: <xref target="RFC7748"/> section 4.1 (edwards25519)</c>
+            <c>&#8226;</c><c>Serialization: <xref target="RFC8032"/> section 3.1</c>
+            <c>&#8226;</c><c>Multiplier Length: 32</c>
+            <c>&#8226;</c><c>Multiplier Conversion: <xref target="RFC8032"/> section 3.1</c>
+            <c>&#8226;</c><c>SPAKE M Constant: 5ada7e4bf6ddd9adb6626d32131c6b5c51a1e347a3478f53cfcf441b88eed12e</c>
+            <c>&#8226;</c><c>SPAKE N Constant: 10e3df0ae37d8e7a99b5fe74b44672103dbddcbd06af680d71329a11693bc778</c>
+          </texttable>
+
+          <texttable style="none" align="left">
+            <ttcol /><ttcol />
+            <c>&#8226;</c><c>ID Number: 2</c>
             <c>&#8226;</c><c>Name: P-256</c>
             <c>&#8226;</c><c>Specification: <xref target="SEC2"/> section 2.4.2</c>
             <c>&#8226;</c><c>Serialization: <xref target="SEC1"/> section 2.3.3 (compressed).</c>
@@ -846,7 +866,7 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
 
           <texttable style="none" align="left">
             <ttcol /><ttcol />
-            <c>&#8226;</c><c>ID Number: 2</c>
+            <c>&#8226;</c><c>ID Number: 3</c>
             <c>&#8226;</c><c>Name: P-384</c>
             <c>&#8226;</c><c>Specification: <xref target="SEC2"/> section 2.5.1</c>
             <c>&#8226;</c><c>Serialization: <xref target="SEC1"/> section 2.3.3 (compressed).</c>
@@ -862,7 +882,7 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
 
           <texttable style="none" align="left">
             <ttcol /><ttcol />
-            <c>&#8226;</c><c>ID Number: 3</c>
+            <c>&#8226;</c><c>ID Number: 4</c>
             <c>&#8226;</c><c>Name: P-521</c>
             <c>&#8226;</c><c>Specification: <xref target="SEC2"/> section 2.6.1</c>
             <c>&#8226;</c><c>Serialization: <xref target="SEC1"/> section 2.3.3 (compressed).</c>
@@ -891,6 +911,8 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
       &rfc4120;
       &rfc5226;
       &rfc6113;
+      &rfc7748;
+      &rfc8032;
       &spake;
       &CCITT.X680.2002;
       &CCITT.X690.2002;
@@ -912,6 +934,7 @@ KEY_USAGE_SPAKE_FACTOR                  TBD
       </reference>
     </references>
     <references title='Non-normative References'>
+      &rfc6234;
       &rfc6560;
       <reference anchor="SPAKE">
         <front>
@@ -973,6 +996,14 @@ PA-SPAKE ::= CHOICE {
 END
 ]]></artwork>
       </figure>
+    </section>
+
+    <section title="SPAKE M and N Value Selection">
+      <t>The M and N constants for the edwards25519 group are the
+      SHA-256 hashes <xref target="RFC6234"/> hashes of "edwards25519
+      point generation seed (M)" and "edwards25519 point generation
+      seed (N)" respectively.  Both hashes decode to valid curve
+      points.</t>
     </section>
 
     <section title="Acknowledgements">
