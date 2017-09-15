@@ -601,7 +601,7 @@ KEY_USAGE_SPAKE_TRANSCRIPT              TBD
 
 	<t>Subsequent factor data, including the data in the response, are
 	encrypted in a derivative of the shared secret K. Therefore, it is not
-	possible to exploit the untrustworthiness of challenge to turn the
+	possible to exploit the untrustworthiness of the challenge to turn the
 	client into an encryption or signing oracle, unless the attacker knows
 	the client's long-term key.</t>
       </section>
