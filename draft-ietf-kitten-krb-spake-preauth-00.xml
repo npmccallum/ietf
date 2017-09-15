@@ -245,6 +245,11 @@
       contents. This mechanism can be used in an authentication set; no
       pa-hint value is required or defined.</t>
 
+      <t>This mechanism negotiates a choice of group for the SPAKE algorithm.
+      Groups are defined in the IANA "Kerberos SPAKE Groups" registry created
+      by this document. Clients and KDCs MUST implement the edwards25519
+      group, but MAY choose not to offer or accept it by default.</t>
+
       <t>This section will describe the flow of messages when performing SPAKE
       pre-authentication. We will begin by explaining the most verbose version
       of the protocol which all implementations MUST support. Then we will
